@@ -1,1 +1,68 @@
-<p>inicio works!</p>
+<div class="dashboard-header mb-4">
+  <h1 class="h2 fw-bold text-navy">Panel de Control Pro</h1>
+  <p class="text-secondary mb-0">Gestión en tiempo real para DentalSys</p>
+</div>
+
+<div class="row g-4 mb-4">
+  
+  <div class="col-12 col-md-4">
+    <div class="card card-custom border-0 shadow-sm p-4 d-flex flex-row align-items-center gap-4">
+      <div class="icon-shape bg-light-blue text-primary rounded-3 d-flex align-items-center justify-content-center">
+        <i class="bi bi-people-fill fs-3"></i>
+      </div>
+      <div>
+        <h5 class="text-secondary fw-semibold mb-1">Pacientes</h5>
+        <h2 class="fw-bold text-dark mb-0">{{ totalPacientes }}</h2>
+        <small class="text-muted">Registrados</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="card card-custom border-0 shadow-sm p-4 d-flex flex-row align-items-center gap-4">
+      <div class="icon-shape bg-light-purple text-purple rounded-3 d-flex align-items-center justify-content-center">
+        <i class="bi bi-calendar-event-fill fs-3"></i>
+      </div>
+      <div>
+        <h5 class="text-secondary fw-semibold mb-1">Citas Hoy</h5>
+        <h2 class="fw-bold text-dark mb-0">{{ citasHoy }}</h2>
+        <small class="text-muted">Pendientes</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="card card-custom border-0 shadow-sm p-4 d-flex flex-row align-items-center gap-4">
+      <div class="icon-shape bg-light-green text-success rounded-3 d-flex align-items-center justify-content-center">
+        <i class="bi bi-cash-coin fs-3"></i>
+      </div>
+      <div>
+        <h5 class="text-secondary fw-semibold mb-1">Ingresos Mes</h5>
+        <h2 class="fw-bold text-dark mb-0">S/ {{ ingresosMes | number:'1.2-2' }}</h2>
+        <small class="text-muted">{{ mesActual }}</small>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-8">
+    <div class="card border-0 shadow-sm p-4 h-100">
+      <h5 class="fw-bold text-navy mb-4">Ingresos por Mes (S/)</h5>
+      <div class="chart-placeholder d-flex align-items-center justify-content-center border border-dashed rounded-3 bg-light" style="height: 300px;">
+        <span class="text-muted"><i class="bi bi-graph-up me-2"></i> Aquí integraremos Chart.js / NgCharts para renderizar tu gráfico de flujo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="card border-0 shadow-sm p-4 h-100">
+      <h5 class="fw-bold text-navy mb-4">Próximos Pacientes (Hoy)</h5>
+      <div class="d-flex flex-column align-items-center justify-content-center h-100 text-center py-5">
+        <i class="bi bi-calendar-x text-muted fs-1 mb-2"></i>
+        <p class="text-secondary fst-italic mb-0">No hay citas programadas para hoy.</p>
+      </div>
+    </div>
+  </div>
+</div>

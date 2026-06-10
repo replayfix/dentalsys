@@ -1,0 +1,28 @@
+.text-navy {
+  color: #1e293b;
+}
+
+.card-custom {
+  background-color: #ffffff;
+  border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
+  }
+}
+
+.icon-shape {
+  width: 60px;
+  height: 60px;
+}
+
+/* Colores personalizados para los iconos de las tarjetas basados en tu diseño */
+.bg-light-blue { background-color: #e0f2fe; color: #0284c7 !important; }
+.bg-light-purple { background-color: #f3e8ff; color: #7c3aed !important; }
+.bg-light-green { background-color: #dcfce7; color: #16a34a !important; }
+
+.border-dashed {
+  border-style: dashed !important;
+}

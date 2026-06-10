@@ -1,1 +1,57 @@
-<p>pacientes works!</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold text-navy mb-0">Directorio de Pacientes</h2>
+    <p class="text-secondary mb-0">Gestión de historias clínicas y datos de contacto</p>
+  </div>
+  
+  <button class="btn btn-primary rounded-3 d-flex align-items-center gap-2" (click)="agregarPacientePrueba()">
+    <i class="bi bi-person-plus-fill"></i> Crear Paciente de Prueba
+  </button>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col" class="ps-4 py-3 text-secondary fw-semibold">Paciente</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">DNI</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">Teléfono</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">Fecha Registro</th>
+          <th scope="col" class="text-end pe-4 py-3 text-secondary fw-semibold">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="pacientes$ | async as pacientes; else cargando">
+          
+          <tr *ngFor="let paciente of pacientes">
+            <td class="ps-4 py-3 fw-bold text-dark">{{ paciente.nombre }}</td>
+            <td class="py-3">{{ paciente.dni }}</td>
+            <td class="py-3">{{ paciente.telefono }}</td>
+            <td class="py-3 text-muted">{{ paciente.fechaRegistro | date:'dd/MM/yyyy' }}</td>
+            <td class="text-end pe-4 py-3">
+              <button class="btn btn-sm btn-light text-primary me-2"><i class="bi bi-eye"></i></button>
+              <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+
+          <tr *ngIf="pacientes.length === 0">
+            <td colspan="5" class="text-center py-5 text-muted">
+              <i class="bi bi-inbox fs-1 d-block mb-2 text-light"></i>
+              No hay pacientes registrados en la base de datos.
+            </td>
+          </tr>
+        </ng-container>
+
+        <ng-template #cargando>
+          <tr>
+            <td colspan="5" class="text-center py-5 text-muted">
+              <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
+              Sincronizando con la nube...
+            </td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+  </div>
+</div>
