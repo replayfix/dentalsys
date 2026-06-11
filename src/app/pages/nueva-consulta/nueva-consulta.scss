@@ -1,0 +1,94 @@
+/* --- ESTILOS DEL FORMULARIO --- */
+
+.form-control {
+  border-radius: 6px;
+  border: 1px solid #e2e8f0; // Gris suave
+  color: #1e293b;
+  font-size: 0.95rem;
+
+  &:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  }
+}
+
+// Estilo especial para el Costo (Caja con borde/fondo azul claro)
+.cost-input {
+  background-color: #f0f9ff !important; 
+  border: 2px solid #0d6efd !important;
+  color: #0d6efd !important;
+  font-size: 1.1rem;
+}
+
+
+/* --- ESTILOS DEL ODONTOGRAMA VECTORIAL (5 ZONAS) --- */
+
+.odontograma-grafico {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+// Línea media divisoria entre cuadrantes
+.mid-line {
+  border-left: 2px solid #e2e8f0;
+}
+
+.diente-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 38px; // Ancho ajustado para el SVG
+  transition: transform 0.2s ease;
+
+  // Pequeño efecto de zoom al acercar el mouse a toda la pieza
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  // Estilos de los números dentales (18, 17, etc.)
+  .tooth-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 4px;
+
+    &.bottom {
+      margin-top: 4px;
+      margin-bottom: 0;
+    }
+  }
+}
+
+// LA MAGIA VECTORIAL: Estilos del SVG y sus 5 superficies
+.tooth-svg {
+  width: 100%;
+  height: 38px;
+  display: block;
+
+  .zone {
+    fill: #f8fafc; // Color fondo Sano (Blanco/Gris muy claro)
+    stroke: #cbd5e1; // Color borde Sano
+    stroke-width: 1.5;
+    transition: fill 0.2s ease, stroke 0.2s ease;
+    cursor: pointer;
+
+    // Efecto visual al pasar el mouse por UNA SOLA zona
+    &:hover {
+      fill: #e2e8f0;
+    }
+
+    /* --- ESTADOS DENTALES CONTROLADOS POR ANGULAR --- */
+    
+    // Si la zona tiene caries
+    &.caries {
+      fill: #ef4444; // Rojo brillante
+      stroke: #b91c1c; // Borde rojo oscuro
+    }
+
+    // Si la zona está obturada
+    &.obturado {
+      fill: #0d6efd; // Azul
+      stroke: #0a58ca; // Borde azul oscuro
+    }
+  }
+}

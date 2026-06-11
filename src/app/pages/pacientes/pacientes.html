@@ -4,8 +4,8 @@
     <p class="text-secondary mb-0">Gestión de historias clínicas y datos de contacto</p>
   </div>
   
-  <button class="btn btn-primary rounded-3 d-flex align-items-center gap-2" (click)="agregarPacientePrueba()">
-    <i class="bi bi-person-plus-fill"></i> Crear Paciente de Prueba
+  <button class="btn btn-primary rounded-3 d-flex align-items-center gap-2" (click)="abrirModal()">
+    <i class="bi bi-person-plus-fill"></i> Nuevo Paciente
   </button>
 </div>
 
@@ -22,8 +22,14 @@
         </tr>
       </thead>
       <tbody>
-        <ng-container *ngIf="pacientes$ | async as pacientes; else cargando">
-          
+        <tr *ngIf="cargando">
+          <td colspan="5" class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
+            Sincronizando con la nube...
+          </td>
+        </tr>
+
+        <ng-container *ngIf="!cargando">
           <tr *ngFor="let paciente of pacientes">
             <td class="ps-4 py-3 fw-bold text-dark">{{ paciente.nombre }}</td>
             <td class="py-3">{{ paciente.dni }}</td>
@@ -38,20 +44,58 @@
           <tr *ngIf="pacientes.length === 0">
             <td colspan="5" class="text-center py-5 text-muted">
               <i class="bi bi-inbox fs-1 d-block mb-2 text-light"></i>
-              No hay pacientes registrados en la base de datos.
+              No hay pacientes registrados.
             </td>
           </tr>
         </ng-container>
-
-        <ng-template #cargando>
-          <tr>
-            <td colspan="5" class="text-center py-5 text-muted">
-              <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
-              Sincronizando con la nube...
-            </td>
-          </tr>
-        </ng-template>
       </tbody>
     </table>
   </div>
 </div>
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModal}" [style.display]="mostrarModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      
+      <div class="modal-header bg-light border-bottom-0">
+        <h5 class="modal-title fw-bold text-navy">Registrar Nuevo Paciente</h5>
+        <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+      </div>
+
+      <form [formGroup]="pacienteForm" (ngSubmit)="guardarPaciente()">
+        <div class="modal-body p-4">
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary">Nombre Completo</label>
+            <input type="text" class="form-control bg-light border-0" formControlName="nombre" placeholder="Ej. Juan Pérez"
+                   [ngClass]="{'is-invalid': pacienteForm.get('nombre')?.invalid && pacienteForm.get('nombre')?.touched}">
+            <div class="invalid-feedback">El nombre es obligatorio.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary">DNI</label>
+            <input type="text" class="form-control bg-light border-0" formControlName="dni" placeholder="Ej. 76543210" maxlength="8"
+                   [ngClass]="{'is-invalid': pacienteForm.get('dni')?.invalid && pacienteForm.get('dni')?.touched}">
+            <div class="invalid-feedback">Ingrese un DNI válido de 8 dígitos.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary">Teléfono / Celular</label>
+            <input type="text" class="form-control bg-light border-0" formControlName="telefono" placeholder="Ej. 987654321"
+                   [ngClass]="{'is-invalid': pacienteForm.get('telefono')?.invalid && pacienteForm.get('telefono')?.touched}">
+            <div class="invalid-feedback">El teléfono es obligatorio.</div>
+          </div>
+
+        </div>
+        
+        <div class="modal-footer border-top-0 bg-light">
+          <button type="button" class="btn btn-outline-secondary rounded-3" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary rounded-3">Guardar Paciente</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModal" class="modal-backdrop fade show"></div>

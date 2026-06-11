@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, collectionData, addDoc, doc, deleteDoc, updateDoc } from '@angular/fire/firestore';
+// Importamos onSnapshot (la función nativa de Firebase para lectura en tiempo real)
+import { Firestore, collection, addDoc, onSnapshot } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
-// Definimos la estructura exacta que tendrá cada paciente en la base de datos
 export interface Paciente {
   id?: string;
   nombre: string;
@@ -15,19 +15,34 @@ export interface Paciente {
   providedIn: 'root'
 })
 export class PacientesService {
-  // Inyectamos el servicio moderno de Firestore
   private firestore = inject(Firestore);
-  
-  // Referencia a la colección 'pacientes' en Firebase
-  private pacientesCollection = collection(this.firestore, 'pacientes');
+  private pacientesRef = collection(this.firestore, 'pacientes');
 
-  // Método para LEER los pacientes en tiempo real
-  getPacientes(): Observable<Paciente[]> {
-    return collectionData(this.pacientesCollection, { idField: 'id' }) as Observable<Paciente[]>;
-  }
+  // Construimos nuestro propio Observable usando la API nativa de Firebase.
+  // ¡Esto esquiva por completo el bug de Angular Vite!
+  public pacientes$: Observable<Paciente[]> = new Observable((subscriber) => {
+    
+    const unsubscribe = onSnapshot(this.pacientesRef, (snapshot) => {
+      const pacientes: Paciente[] = [];
+      
+      snapshot.forEach((doc) => {
+        // Extraemos el ID y los datos de cada paciente
+        pacientes.push({ id: doc.id, ...doc.data() } as Paciente);
+      });
+      
+      // Enviamos los datos procesados al componente visual
+      subscriber.next(pacientes);
+      
+    }, (error) => {
+      // Si hay un error real de conexión, lo reportamos
+      subscriber.error(error);
+    });
 
-  // Método para CREAR un nuevo paciente
+    // Cuando el usuario cambia de pantalla, limpiamos la conexión
+    return () => unsubscribe();
+  });
+
   addPaciente(paciente: Paciente) {
-    return addDoc(this.pacientesCollection, paciente);
+    return addDoc(this.pacientesRef, paciente);
   }
 }

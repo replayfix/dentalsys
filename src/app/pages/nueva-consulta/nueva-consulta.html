@@ -1,1 +1,127 @@
-<p>nueva-consulta works!</p>
+<h2 class="fw-bold text-navy mb-4 mt-2">Registro de Consulta Clínica</h2>
+
+<div class="row g-4">
+  
+  <div class="col-lg-5 col-xl-4">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        
+        <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">Datos del Paciente y Signos Vitales</h5>
+        
+        <form [formGroup]="consultaForm">
+          
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">Paciente (ID)</label>
+            <input type="text" class="form-control bg-light" formControlName="pacienteId">
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label text-secondary small fw-medium">Presión Arterial (mmHg)</label>
+              <input type="text" class="form-control bg-light" formControlName="presionArterial">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-secondary small fw-medium">Frec. Cardíaca (lpm)</label>
+              <input type="text" class="form-control bg-light" formControlName="frecuenciaCardiaca">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">Costo de Atención (S/)</label>
+            <input type="number" class="form-control cost-input fw-bold" formControlName="costoAtencion">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">Motivo de Consulta</label>
+            <textarea class="form-control" formControlName="motivo" rows="3" placeholder="Escriba el motivo..."></textarea>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label text-secondary small fw-medium">Plan de Tratamiento propuesto</label>
+            <textarea class="form-control" formControlName="planTratamiento" rows="3" placeholder="Escriba el tratamiento..."></textarea>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7 col-xl-8">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 border-bottom pb-3 gap-3">
+          <h5 class="fw-bold text-dark mb-0">Odontograma Adulto</h5>
+          <div class="d-flex gap-2">
+            <span class="border px-3 py-1 rounded-2 small fw-semibold bg-white text-secondary">Sano</span>
+            <span class="bg-danger text-white px-3 py-1 rounded-2 small fw-semibold">Caries (Clic 1)</span>
+            <span class="bg-primary text-white px-3 py-1 rounded-2 small fw-semibold">Obturado (Clic 2)</span>
+          </div>
+        </div>
+
+        <div class="odontograma-grafico">
+          
+          <div class="d-flex justify-content-center gap-1 mb-3">
+            <div *ngFor="let diente of cuadrante1" class="diente-box">
+              <span class="tooth-num top">{{ diente.numero }}</span>
+              <svg viewBox="0 0 40 40" class="tooth-svg">
+                <polygon points="0,0 40,0 30,10 10,10" class="zone" [ngClass]="diente.top" (click)="cambiarEstadoZona(diente, 'top')"></polygon>
+                <polygon points="40,0 40,40 30,30 30,10" class="zone" [ngClass]="diente.right" (click)="cambiarEstadoZona(diente, 'right')"></polygon>
+                <polygon points="0,40 40,40 30,30 10,30" class="zone" [ngClass]="diente.bottom" (click)="cambiarEstadoZona(diente, 'bottom')"></polygon>
+                <polygon points="0,0 0,40 10,30 10,10" class="zone" [ngClass]="diente.left" (click)="cambiarEstadoZona(diente, 'left')"></polygon>
+                <rect x="10" y="10" width="20" height="20" class="zone" [ngClass]="diente.center" (click)="cambiarEstadoZona(diente, 'center')"></rect>
+              </svg>
+            </div>
+            
+            <div class="mid-line mx-2 mx-md-3"></div>
+
+            <div *ngFor="let diente of cuadrante2" class="diente-box">
+              <span class="tooth-num top">{{ diente.numero }}</span>
+              <svg viewBox="0 0 40 40" class="tooth-svg">
+                <polygon points="0,0 40,0 30,10 10,10" class="zone" [ngClass]="diente.top" (click)="cambiarEstadoZona(diente, 'top')"></polygon>
+                <polygon points="40,0 40,40 30,30 30,10" class="zone" [ngClass]="diente.right" (click)="cambiarEstadoZona(diente, 'right')"></polygon>
+                <polygon points="0,40 40,40 30,30 10,30" class="zone" [ngClass]="diente.bottom" (click)="cambiarEstadoZona(diente, 'bottom')"></polygon>
+                <polygon points="0,0 0,40 10,30 10,10" class="zone" [ngClass]="diente.left" (click)="cambiarEstadoZona(diente, 'left')"></polygon>
+                <rect x="10" y="10" width="20" height="20" class="zone" [ngClass]="diente.center" (click)="cambiarEstadoZona(diente, 'center')"></rect>
+              </svg>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-center gap-1 mt-5 pt-2">
+            <div *ngFor="let diente of cuadrante4" class="diente-box">
+              <svg viewBox="0 0 40 40" class="tooth-svg">
+                <polygon points="0,0 40,0 30,10 10,10" class="zone" [ngClass]="diente.top" (click)="cambiarEstadoZona(diente, 'top')"></polygon>
+                <polygon points="40,0 40,40 30,30 30,10" class="zone" [ngClass]="diente.right" (click)="cambiarEstadoZona(diente, 'right')"></polygon>
+                <polygon points="0,40 40,40 30,30 10,30" class="zone" [ngClass]="diente.bottom" (click)="cambiarEstadoZona(diente, 'bottom')"></polygon>
+                <polygon points="0,0 0,40 10,30 10,10" class="zone" [ngClass]="diente.left" (click)="cambiarEstadoZona(diente, 'left')"></polygon>
+                <rect x="10" y="10" width="20" height="20" class="zone" [ngClass]="diente.center" (click)="cambiarEstadoZona(diente, 'center')"></rect>
+              </svg>
+              <span class="tooth-num bottom">{{ diente.numero }}</span>
+            </div>
+            
+            <div class="mid-line mx-2 mx-md-3"></div>
+
+            <div *ngFor="let diente of cuadrante3" class="diente-box">
+              <svg viewBox="0 0 40 40" class="tooth-svg">
+                <polygon points="0,0 40,0 30,10 10,10" class="zone" [ngClass]="diente.top" (click)="cambiarEstadoZona(diente, 'top')"></polygon>
+                <polygon points="40,0 40,40 30,30 30,10" class="zone" [ngClass]="diente.right" (click)="cambiarEstadoZona(diente, 'right')"></polygon>
+                <polygon points="0,40 40,40 30,30 10,30" class="zone" [ngClass]="diente.bottom" (click)="cambiarEstadoZona(diente, 'bottom')"></polygon>
+                <polygon points="0,0 0,40 10,30 10,10" class="zone" [ngClass]="diente.left" (click)="cambiarEstadoZona(diente, 'left')"></polygon>
+                <rect x="10" y="10" width="20" height="20" class="zone" [ngClass]="diente.center" (click)="cambiarEstadoZona(diente, 'center')"></rect>
+              </svg>
+              <span class="tooth-num bottom">{{ diente.numero }}</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
+          <button type="button" class="btn btn-outline-secondary px-4 rounded-3 fw-medium">Cancelar</button>
+          <button type="button" class="btn btn-primary px-4 rounded-3 fw-medium" (click)="guardarConsulta()">Guardar Consulta</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  
+</div>

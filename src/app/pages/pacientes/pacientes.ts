@@ -1,37 +1,75 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core'; // Agregamos ChangeDetectorRef
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PacientesService, Paciente } from '../../core/services/pacientes';
-import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-pacientes',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './pacientes.html',
   styleUrls: ['./pacientes.scss']
 })
 export class PacientesComponent implements OnInit {
   private pacientesService = inject(PacientesService);
+  private fb = inject(FormBuilder);
+  private cdr = inject(ChangeDetectorRef); // Inyectamos el detector de cambios
   
-  // Observable que mantendrá la tabla sincronizada con Firebase
-  pacientes$!: Observable<Paciente[]>;
+  pacientes: Paciente[] = [];
+  cargando: boolean = true;
+  pacienteForm: FormGroup;
+  mostrarModal: boolean = false;
 
-  ngOnInit() {
-    // Al cargar la pantalla, nos suscribimos a la colección
-    this.pacientes$ = this.pacientesService.getPacientes();
+  constructor() {
+    this.pacienteForm = this.fb.group({
+      nombre: ['', Validators.required],
+      dni: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(8)]],
+      telefono: ['', Validators.required]
+    });
   }
 
-  // Función temporal para insertar un registro y probar la base de datos
-  agregarPacientePrueba() {
-    const nuevoPaciente: Paciente = {
-      nombre: 'Juan Pérez',
-      dni: '76543210',
-      telefono: '987654321',
-      fechaRegistro: Date.now()
-    };
+  ngOnInit() {
+    this.pacientesService.pacientes$.subscribe({
+      next: (data) => {
+        this.pacientes = data;
+        this.cargando = false;
+        
+        // LE DECIMOS A ANGULAR QUE SE ACTUALICE INMEDIATAMENTE
+        this.cdr.detectChanges(); 
+      },
+      error: (error) => {
+        console.error('Error al leer datos:', error);
+        this.cargando = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
-    this.pacientesService.addPaciente(nuevoPaciente)
-      .then(() => console.log('¡Paciente guardado exitosamente en Firestore!'))
-      .catch(error => console.error('Error al guardar:', error));
+  abrirModal() {
+    this.mostrarModal = true;
+  }
+
+  cerrarModal() {
+    this.mostrarModal = false;
+    this.pacienteForm.reset();
+  }
+
+  guardarPaciente() {
+    if (this.pacienteForm.valid) {
+      const nuevoPaciente: Paciente = {
+        ...this.pacienteForm.value,
+        fechaRegistro: Date.now()
+      };
+
+      this.pacientesService.addPaciente(nuevoPaciente)
+        .then(() => {
+          this.cerrarModal();
+          // También forzamos la actualización al cerrar el modal si es necesario
+          this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error al guardar:', error));
+    } else {
+      this.pacienteForm.markAllAsTouched();
+    }
   }
 }
