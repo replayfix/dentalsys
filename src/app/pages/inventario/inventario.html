@@ -1,0 +1,116 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold text-navy mb-0">Control de Inventario</h2>
+    <p class="text-secondary mb-0">Gestión de insumos clínicos, stock y alertas de reabastecimiento</p>
+  </div>
+  
+  <button class="btn btn-primary rounded-3 d-flex align-items-center gap-2" (click)="abrirModal()">
+    <i class="bi bi-box-seam-fill"></i> Registrar Insumo
+  </button>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col" class="ps-4 py-3 text-secondary fw-semibold">Material / Insumo</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">Categoría</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold text-center">Stock Mínimo</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold text-center">Stock Actual</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">Estado</th>
+          <th scope="col" class="text-end pe-4 py-3 text-secondary fw-semibold">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="cargando">
+          <td colspan="6" class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
+            Sincronizando almacén...
+          </td>
+        </tr>
+
+        <ng-container *ngIf="!cargando">
+          <tr *ngFor="let insumo of insumos">
+            <td class="ps-4 py-3 fw-bold text-dark">{{ insumo.nombre }}</td>
+            <td class="py-3"><span class="badge bg-light text-secondary border px-2 py-1">{{ insumo.categoria }}</span></td>
+            <td class="py-3 text-center fw-medium text-secondary">{{ insumo.stockMinimo }} ud.</td>
+            <td class="py-3 text-center fw-bold fs-6" [ngClass]="{'text-danger': insumo.stockActual <= insumo.stockMinimo, 'text-dark': insumo.stockActual > insumo.stockMinimo}">
+              {{ insumo.stockActual }} ud.
+            </td>
+            <td class="py-3">
+              <span *ngIf="insumo.stockActual <= insumo.stockMinimo" class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill fw-bold animate-pulse">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Stock Crítico
+              </span>
+              <span *ngIf="insumo.stockActual > insumo.stockMinimo" class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">
+                <i class="bi bi-check-circle-fill me-1"></i> Abastecido
+              </span>
+            </td>
+            <td class="text-end pe-4 py-3">
+              <button class="btn btn-sm btn-light text-primary me-2" title="Editar Stock"><i class="bi bi-pencil-square"></i></button>
+              <button class="btn btn-sm btn-light text-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+
+          <tr *ngIf="insumos.length === 0">
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-box-seam fs-1 d-block mb-2 text-light"></i>
+              No hay materiales registrados en el almacén.
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModal}" [style.display]="mostrarModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      
+      <div class="modal-header bg-light border-bottom-0 p-3">
+        <h5 class="modal-title fw-bold text-navy"><i class="bi bi-box-seam text-primary me-2"></i>Registrar Material</h5>
+        <button type="button" class="btn-close shadow-none" (click)="cerrarModal()"></button>
+      </div>
+
+      <form [formGroup]="insumoForm" (ngSubmit)="guardarInsumo()">
+        <div class="modal-body p-4">
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary">Nombre del Material</label>
+            <input type="text" class="form-control bg-light border-0" formControlName="nombre" placeholder="Ej. Resina Filtek Z350 A2"
+                   [ngClass]="{'is-invalid': insumoForm.get('nombre')?.invalid && insumoForm.get('nombre')?.touched}">
+            <div class="invalid-feedback">El nombre es obligatorio.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary">Categoría</label>
+            <select class="form-select bg-light border-0" formControlName="categoria">
+              <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
+            </select>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold text-secondary">Stock Actual</label>
+              <input type="number" class="form-control bg-light border-0" formControlName="stockActual" min="0">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold text-secondary">Stock Mínimo (Alerta)</label>
+              <input type="number" class="form-control bg-light border-0" formControlName="stockMinimo" min="0">
+            </div>
+          </div>
+
+        </div>
+        
+        <div class="modal-footer border-top-0 bg-light p-3">
+          <button type="button" class="btn btn-outline-secondary rounded-3" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary rounded-3 px-4">Guardar Insumo</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModal" class="modal-backdrop fade show"></div>
