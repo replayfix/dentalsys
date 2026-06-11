@@ -36,7 +36,12 @@
             <td class="py-3">{{ paciente.telefono }}</td>
             <td class="py-3 text-muted">{{ paciente.fechaRegistro | date:'dd/MM/yyyy' }}</td>
             <td class="text-end pe-4 py-3">
-              <button class="btn btn-sm btn-light text-primary me-2"><i class="bi bi-eye"></i></button>
+              <a [routerLink]="['/nueva-consulta']" 
+                 [queryParams]="{ id: paciente.id, nombre: paciente.nombre }" 
+                 class="btn btn-sm btn-light text-primary me-2" 
+                 title="Nueva Consulta">
+                <i class="bi bi-clipboard2-pulse-fill"></i>
+              </a>
               <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
             </td>
           </tr>

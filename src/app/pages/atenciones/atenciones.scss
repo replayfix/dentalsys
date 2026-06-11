@@ -1,0 +1,38 @@
+.text-truncate-custom {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #475569;
+}
+
+.table th {
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.tracking-wider {
+  letter-spacing: 0.8px;
+}
+
+.italic-style {
+  font-style: italic;
+  color: #94a3b8;
+}
+
+// Estilos de scrollbar elegante para la lista de hallazgos
+ul.overflow-auto {
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+}

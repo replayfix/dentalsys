@@ -1,19 +1,21 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core'; // Agregamos ChangeDetectorRef
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router'; // 1. 👇 ¡IMPORTA ESTO AQUÍ!
 import { PacientesService, Paciente } from '../../core/services/pacientes';
 
 @Component({
   selector: 'app-pacientes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  // 2. 👇 ¡AGREGA RouterLink EN ESTE ARREGLO DE IMPORTS!
+  imports: [CommonModule, ReactiveFormsModule, RouterLink], 
   templateUrl: './pacientes.html',
   styleUrls: ['./pacientes.scss']
 })
 export class PacientesComponent implements OnInit {
   private pacientesService = inject(PacientesService);
   private fb = inject(FormBuilder);
-  private cdr = inject(ChangeDetectorRef); // Inyectamos el detector de cambios
+  private cdr = inject(ChangeDetectorRef);
   
   pacientes: Paciente[] = [];
   cargando: boolean = true;
@@ -33,8 +35,6 @@ export class PacientesComponent implements OnInit {
       next: (data) => {
         this.pacientes = data;
         this.cargando = false;
-        
-        // LE DECIMOS A ANGULAR QUE SE ACTUALICE INMEDIATAMENTE
         this.cdr.detectChanges(); 
       },
       error: (error) => {
@@ -64,7 +64,6 @@ export class PacientesComponent implements OnInit {
       this.pacientesService.addPaciente(nuevoPaciente)
         .then(() => {
           this.cerrarModal();
-          // También forzamos la actualización al cerrar el modal si es necesario
           this.cdr.detectChanges();
         })
         .catch(error => console.error('Error al guardar:', error));

@@ -1,1 +1,152 @@
-<p>atenciones works!</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold text-navy mb-0">Historial de Atenciones</h2>
+    <p class="text-secondary mb-0">Registro cronológico de consultas médicas y presupuestos</p>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col" class="ps-4 py-3 text-secondary fw-semibold">Fecha</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">Paciente</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">Motivo de Consulta</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">Costo</th>
+          <th scope="col" class="text-end pe-4 py-3 text-secondary fw-semibold">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="cargando">
+          <td colspan="5" class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
+            Sincronizando historial médico...
+          </td>
+        </tr>
+
+        <ng-container *ngIf="!cargando">
+          <tr *ngFor="let consulta of consultas">
+            <td class="ps-4 py-3 text-muted fw-medium">
+              {{ consulta.fechaRegistro | date:'dd/MM/yyyy hh:mm a' }}
+            </td>
+            <td class="py-3 fw-bold text-dark">{{ consulta.pacienteNombre }}</td>
+            <td class="py-3 text-truncate-custom">{{ consulta.motivo }}</td>
+            <td class="py-3">
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">
+                S/ {{ consulta.costoAtencion | number:'1.2-2' }}
+              </span>
+            </td>
+            <td class="text-end pe-4 py-3">
+              <button class="btn btn-sm btn-light text-primary fw-semibold px-3 rounded-3" (click)="verDetalleConsulta(consulta)">
+                <i class="bi bi-eye-fill me-1"></i> Ver Ficha
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="consultas.length === 0">
+            <td colspan="5" class="text-center py-5 text-muted">
+              <i class="bi bi-folder-x fs-1 d-block mb-2 text-light"></i>
+              No se han registrado consultas clínicas aún.
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalDetalle}" [style.display]="mostrarModalDetalle ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered modal-xl"> <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      
+      <div class="modal-header border-bottom-0 p-4 bg-white d-flex justify-content-between align-items-center">
+        <h4 class="modal-title fw-bold text-navy m-0">Ficha Clínica Detallada</h4>
+        <button type="button" class="btn-close shadow-none" (click)="cerrarModalDetalle()"></button>
+      </div>
+
+      <div class="modal-body p-4 bg-light" *ngIf="consultaSeleccionada">
+        <div class="row g-4">
+          
+          <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
+              <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Datos de Atención</h6>
+              <div class="d-flex flex-column gap-3 py-1">
+                <div>
+                  <span class="d-block text-muted small">Paciente</span>
+                  <strong class="text-dark fs-5">{{ consultaSeleccionada.pacienteNombre }}</strong>
+                </div>
+                <div>
+                  <span class="d-block text-muted small">Fecha</span>
+                  <strong class="text-secondary">{{ consultaSeleccionada.fechaRegistro | date:'dd/MM/yyyy' }}</strong>
+                </div>
+                <div>
+                  <span class="d-block text-muted small">Signos Vitales</span>
+                  <span class="text-secondary d-block">Presión: <strong>{{ consultaSeleccionada.presionArterial || '120/80' }} mmHg</strong></span>
+                  <span class="text-secondary d-block">Frecuencia: <strong>{{ consultaSeleccionada.frecuenciaCardiaca || '70' }} lpm</strong></span>
+                </div>
+                <div>
+                  <span class="d-block text-muted small">Costo Total</span>
+                  <strong class="text-primary fs-5">S/ {{ consultaSeleccionada.costoAtencion | number:'1.2-2' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
+              <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Hallazgos (Odontograma)</h6>
+              
+              <div *ngIf="hallazgosDeteccion.length === 0" class="text-muted text-center py-4 small">
+                <i class="bi bi-shield-check text-success fs-3 d-block mb-1"></i>
+                Dentadura completa sin anomalías registradas.
+              </div>
+
+              <ul class="list-unstyled d-flex flex-column gap-2 mb-0 overflow-auto" style="max-height: 250px;" *ngIf="hallazgosDeteccion.length > 0">
+                <li *ngFor="let h of hallazgosDeteccion" class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3">
+                  <span class="text-secondary fw-medium">
+                    <i class="bi bi-circle-fill text-black-50 small me-2" style="font-size: 0.5rem;"></i>
+                    Diente <strong>{{ h.numero }}</strong>: {{ h.cara }}
+                  </span>
+                  <span class="badge rounded-pill px-2 py-1 small fw-bold {{ h.badgeClase }}">
+                    {{ h.estado }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white text-center d-flex flex-column justify-content-center align-items-center">
+              <div class="w-100 text-start h-100">
+                <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Materiales Utilizados</h6>
+                <div class="text-muted text-center py-5 small italic-style">
+                  No se consumieron insumos en esta sesión.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4 border-start border-4 border-warning bg-white">
+              <h6 class="text-uppercase text-warning fw-bold small tracking-wider mb-2">Observaciones / Plan de Tratamiento</h6>
+              <p class="text-dark mb-0 fw-medium bg-light p-3 rounded-3 border">
+                {{ consultaSeleccionada.planTratamiento || 'Sin observaciones detalladas.' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer border-top-0 p-3 bg-white">
+        <button type="button" class="btn btn-secondary px-4 rounded-3 fw-semibold" (click)="cerrarModalDetalle()">Cerrar Historial</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModalDetalle" class="modal-backdrop fade show"></div>
