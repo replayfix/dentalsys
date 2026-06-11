@@ -1,3 +1,5 @@
+/* --- ESTILOS ORIGINALES DEL PANEL --- */
+
 .text-navy {
   color: #1e293b;
 }
@@ -18,11 +20,26 @@
   height: 60px;
 }
 
-/* Colores personalizados para los iconos de las tarjetas basados en tu diseño */
+/* Colores personalizados para los iconos de las tarjetas */
 .bg-light-blue { background-color: #e0f2fe; color: #0284c7 !important; }
 .bg-light-purple { background-color: #f3e8ff; color: #7c3aed !important; }
 .bg-light-green { background-color: #dcfce7; color: #16a34a !important; }
 
 .border-dashed {
   border-style: dashed !important;
+}
+
+
+/* --- SOPORTE PARA ANALÍTICA Y GRÁFICOS (NUEVO) --- */
+
+// Separa ligeramente las letras de los subtítulos de los KPIs
+.tracking-wider {
+  letter-spacing: 0.8px;
+}
+
+// Contenedor crítico para que Chart.js calcule sus dimensiones de forma responsiva
+.chart-container {
+  position: relative; 
+  height: 320px; 
+  width: 100%;
 }
