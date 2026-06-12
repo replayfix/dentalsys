@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, addDoc, onSnapshot, doc, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from '@angular/fire/firestore'; // 👈 deleteDoc agregado aquí
 import { Observable } from 'rxjs';
 
 export interface Insumo {
@@ -23,13 +23,19 @@ export class InventarioService {
     return addDoc(this.inventarioRef, insumo);
   }
 
-  // NUEVO MÉTODO: Actualiza el stock de un insumo específico en la nube
+  // Actualiza el stock de un insumo específico en la nube
   actualizarStock(id: string, nuevoStock: number) {
     const docRef = doc(this.firestore, `inventario/${id}`);
     return updateDoc(docRef, { 
       stockActual: nuevoStock, 
       fechaActualizacion: Date.now() 
     });
+  }
+
+  // NUEVO MÉTODO: Eliminar un insumo permanentemente de la nube
+  eliminarInsumo(id: string) {
+    const docRef = doc(this.firestore, `inventario/${id}`);
+    return deleteDoc(docRef);
   }
 
   // Lector reactivo en tiempo real ordenado de la A a la Z

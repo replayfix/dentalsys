@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-// Importamos onSnapshot (la función nativa de Firebase para lectura en tiempo real)
-import { Firestore, collection, addDoc, onSnapshot } from '@angular/fire/firestore';
+// Importamos las funciones nativas necesarias de Firebase para lectura, inserción y borrado
+import { Firestore, collection, addDoc, onSnapshot, doc, deleteDoc } from '@angular/fire/firestore'; 
 import { Observable } from 'rxjs';
 
 export interface Paciente {
@@ -42,7 +42,14 @@ export class PacientesService {
     return () => unsubscribe();
   });
 
+  // Método para registrar un nuevo paciente en la nube
   addPaciente(paciente: Paciente) {
     return addDoc(this.pacientesRef, paciente);
+  }
+
+  // NUEVO MÉTODO: Eliminar un paciente permanentemente de la nube
+  eliminarPaciente(id: string) {
+    const docRef = doc(this.firestore, `pacientes/${id}`);
+    return deleteDoc(docRef);
   }
 }

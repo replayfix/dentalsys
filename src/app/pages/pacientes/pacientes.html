@@ -50,7 +50,7 @@
                 <i class="bi bi-journal-medical"></i>
               </a>
 
-              <button class="btn btn-sm btn-light text-danger" title="Eliminar Paciente">
+              <button (click)="abrirModalEliminar(paciente)" class="btn btn-sm btn-light text-danger" title="Eliminar Paciente">
                 <i class="bi bi-trash"></i>
               </button>
             </td>
@@ -114,3 +114,25 @@
 </div>
 
 <div *ngIf="mostrarModal" class="modal-backdrop fade show"></div>
+
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalEliminar}" [style.display]="mostrarModalEliminar ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-body p-4 text-center">
+        <i class="bi bi-exclamation-triangle text-danger display-4 d-block mb-3"></i>
+        <h5 class="fw-bold text-dark mb-2">¿Confirmar Eliminación?</h5>
+        <p class="text-secondary small px-2">
+          Estás a punto de borrar la ficha médica de <strong>{{ pacienteAEliminar?.nombre }}</strong>. Esta acción eliminará permanentemente sus datos de la nube y no se puede deshacer.
+        </p>
+        
+        <div class="d-flex gap-2 justify-content-center mt-4">
+          <button type="button" class="btn btn-light px-4 rounded-3 fw-semibold text-secondary border" (click)="cerrarModalEliminar()">Cancelar</button>
+          <button type="button" class="btn btn-danger px-4 rounded-3 fw-semibold" (click)="confirmarEliminacion()">Eliminar Registro</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModalEliminar" class="modal-backdrop fade show"></div>

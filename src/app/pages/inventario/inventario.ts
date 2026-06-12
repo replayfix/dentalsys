@@ -19,9 +19,13 @@ export class InventarioComponent implements OnInit {
   cargando: boolean = true;
   mostrarModal: boolean = false;
   insumoForm: FormGroup;
-
-  // Lista predefinida de categorías dentales
   categorias: string[] = ['Materiales', 'Anestésicos', 'Desinfectantes', 'Epps / Desechables', 'Instrumental'];
+
+  // VARIABLES DE CONTROL DE FLUJOS CRUD
+  editandoMode: boolean = false;
+  insumoSeleccionadoId: string | null = null;
+  mostrarModalEliminar: boolean = false;
+  insumoAEliminar: Insumo | null = null;
 
   constructor() {
     this.insumoForm = this.fb.group({
@@ -37,7 +41,7 @@ export class InventarioComponent implements OnInit {
       next: (data) => {
         this.insumos = data;
         this.cargando = false;
-        this.cdr.detectChanges(); // Forzar actualización de pantalla limpia
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error al leer inventario:', error);
@@ -47,7 +51,45 @@ export class InventarioComponent implements OnInit {
     });
   }
 
+  // --- FLUJO EDITAR / REABASTECER ---
+  abrirModalEditar(insumo: Insumo) {
+    this.editandoMode = true;
+    this.insumoSeleccionadoId = insumo.id || null;
+    this.insumoForm.patchValue({
+      nombre: insumo.nombre,
+      categoria: insumo.categoria,
+      stockActual: insumo.stockActual,
+      stockMinimo: insumo.stockMinimo
+    });
+    this.mostrarModal = true;
+  }
+
+  // --- FLUJO ELIMINAR ---
+  abrirModalEliminar(insumo: Insumo) {
+    this.insumoAEliminar = insumo;
+    this.mostrarModalEliminar = true;
+  }
+
+  cerrarModalEliminar() {
+    this.mostrarModalEliminar = false;
+    this.insumoAEliminar = null;
+  }
+
+  confirmarEliminacion() {
+    if (this.insumoAEliminar?.id) {
+      this.inventarioService.eliminarInsumo(this.insumoAEliminar.id)
+        .then(() => {
+          this.cerrarModalEliminar();
+          this.cdr.detectChanges();
+        })
+        .catch(error => console.error('Error al remover material:', error));
+    }
+  }
+
+  // --- CONTROLES GENERALES DEL FORMULARIO ---
   abrirModal() {
+    this.editandoMode = false;
+    this.insumoSeleccionadoId = null;
     this.mostrarModal = true;
   }
 
@@ -58,17 +100,26 @@ export class InventarioComponent implements OnInit {
 
   guardarInsumo() {
     if (this.insumoForm.valid) {
-      const nuevoInsumo: Insumo = {
-        ...this.insumoForm.value,
-        fechaActualizacion: Date.now()
-      };
+      const datosInsumo = this.insumoForm.value;
 
-      this.inventarioService.addInsumo(nuevoInsumo)
-        .then(() => {
-          this.cerrarModal();
-          this.cdr.detectChanges();
-        })
-        .catch(error => console.error('Error al registrar material:', error));
+      if (this.editandoMode && this.insumoSeleccionadoId) {
+        // Ejecuta actualización matemática directa asegurando el casteo numérico
+        this.inventarioService.actualizarStock(this.insumoSeleccionadoId, Number(datosInsumo.stockActual))
+          .then(() => {
+            this.cerrarModal();
+            this.cdr.detectChanges();
+          })
+          .catch(error => console.error('Error al actualizar stock:', error));
+      } else {
+        // Modo Registro Tradicional
+        const nuevoInsumo: Insumo = { ...datosInsumo, fechaActualizacion: Date.now() };
+        this.inventarioService.addInsumo(nuevoInsumo)
+          .then(() => {
+            this.cerrarModal();
+            this.cdr.detectChanges();
+          })
+          .catch(error => console.error('Error al registrar material:', error));
+      }
     } else {
       this.insumoForm.markAllAsTouched();
     }

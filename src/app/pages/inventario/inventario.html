@@ -46,9 +46,14 @@
                 <i class="bi bi-check-circle-fill me-1"></i> Abastecido
               </span>
             </td>
+            
             <td class="text-end pe-4 py-3">
-              <button class="btn btn-sm btn-light text-primary me-2" title="Editar Stock"><i class="bi bi-pencil-square"></i></button>
-              <button class="btn btn-sm btn-light text-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
+              <button (click)="abrirModalEditar(insumo)" class="btn btn-sm btn-light text-primary me-2" title="Editar Material / Reabastecer">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+              <button (click)="abrirModalEliminar(insumo)" class="btn btn-sm btn-light text-danger" title="Eliminar del Almacén">
+                <i class="bi bi-trash"></i>
+              </button>
             </td>
           </tr>
 
@@ -69,7 +74,10 @@
     <div class="modal-content border-0 shadow-lg rounded-4">
       
       <div class="modal-header bg-light border-bottom-0 p-3">
-        <h5 class="modal-title fw-bold text-navy"><i class="bi bi-box-seam text-primary me-2"></i>Registrar Material</h5>
+        <h5 class="modal-title fw-bold text-navy">
+          <i class="bi bi-box-seam text-primary me-2"></i>
+          {{ editandoMode ? 'Editar / Reabastecer Material' : 'Registrar Material' }}
+        </h5>
         <button type="button" class="btn-close shadow-none" (click)="cerrarModal()"></button>
       </div>
 
@@ -114,3 +122,25 @@
 </div>
 
 <div *ngIf="mostrarModal" class="modal-backdrop fade show"></div>
+
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalEliminar}" [style.display]="mostrarModalEliminar ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-body p-4 text-center">
+        <i class="bi bi-box-x text-danger display-4 d-block mb-3"></i>
+        <h5 class="fw-bold text-dark mb-2">¿Eliminar del Almacén?</h5>
+        <p class="text-secondary small px-2">
+          Vas a remover <strong>{{ insumoAEliminar?.nombre }}</strong> por completo del catálogo. Esta acción no afectará las consultas pasadas, pero el insumo ya no se podrá seleccionar en futuras citas.
+        </p>
+        
+        <div class="d-flex gap-2 justify-content-center mt-4">
+          <button type="button" class="btn btn-light px-4 rounded-3 fw-semibold text-secondary border" (click)="cerrarModalEliminar()">Cancelar</button>
+          <button type="button" class="btn btn-danger px-4 rounded-3 fw-semibold" (click)="confirmarEliminacion()">Eliminar Catálogo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModalEliminar" class="modal-backdrop fade show"></div>
