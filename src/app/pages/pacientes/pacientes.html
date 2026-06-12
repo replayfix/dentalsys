@@ -9,6 +9,20 @@
   </button>
 </div>
 
+<div class="row mb-3">
+  <div class="col-md-5 col-lg-4">
+    <div class="input-group shadow-sm rounded-3 overflow-hidden border">
+      <span class="input-group-text bg-white border-0 text-muted pe-1">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" 
+             class="form-control bg-white border-0 py-2 ps-2 small" 
+             placeholder="Buscar por nombre o DNI..." 
+             (input)="onBuscarPaciente($event)">
+    </div>
+  </div>
+</div>
+
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
@@ -30,7 +44,7 @@
         </tr>
 
         <ng-container *ngIf="!cargando">
-          <tr *ngFor="let paciente of pacientes">
+          <tr *ngFor="let paciente of pacientesFiltrados">
             <td class="ps-4 py-3 fw-bold text-dark">{{ paciente.nombre }}</td>
             <td class="py-3">{{ paciente.dni }}</td>
             <td class="py-3">{{ paciente.telefono }}</td>
@@ -56,10 +70,10 @@
             </td>
           </tr>
 
-          <tr *ngIf="pacientes.length === 0">
+          <tr *ngIf="pacientesFiltrados.length === 0">
             <td colspan="5" class="text-center py-5 text-muted">
-              <i class="bi bi-inbox fs-1 d-block mb-2 text-light"></i>
-              No hay pacientes registrados.
+              <i class="bi bi-person-x fs-1 d-block mb-2 text-light"></i>
+              No se encontraron pacientes que coincidan con la búsqueda.
             </td>
           </tr>
         </ng-container>
@@ -71,50 +85,40 @@
 <div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModal}" [style.display]="mostrarModal ? 'block' : 'none'">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
-      
       <div class="modal-header bg-light border-bottom-0">
         <h5 class="modal-title fw-bold text-navy">Registrar Nuevo Paciente</h5>
         <button type="button" class="btn-close" (click)="cerrarModal()"></button>
       </div>
-
       <form [formGroup]="pacienteForm" (ngSubmit)="guardarPaciente()">
         <div class="modal-body p-4">
-          
           <div class="mb-3">
             <label class="form-label fw-semibold text-secondary">Nombre Completo</label>
             <input type="text" class="form-control bg-light border-0" formControlName="nombre" placeholder="Ej. Juan Pérez"
                    [ngClass]="{'is-invalid': pacienteForm.get('nombre')?.invalid && pacienteForm.get('nombre')?.touched}">
             <div class="invalid-feedback">El nombre es obligatorio.</div>
           </div>
-
           <div class="mb-3">
             <label class="form-label fw-semibold text-secondary">DNI</label>
             <input type="text" class="form-control bg-light border-0" formControlName="dni" placeholder="Ej. 76543210" maxlength="8"
                    [ngClass]="{'is-invalid': pacienteForm.get('dni')?.invalid && pacienteForm.get('dni')?.touched}">
             <div class="invalid-feedback">Ingrese un DNI válido de 8 dígitos.</div>
           </div>
-
           <div class="mb-3">
             <label class="form-label fw-semibold text-secondary">Teléfono / Celular</label>
             <input type="text" class="form-control bg-light border-0" formControlName="telefono" placeholder="Ej. 987654321"
                    [ngClass]="{'is-invalid': pacienteForm.get('telefono')?.invalid && pacienteForm.get('telefono')?.touched}">
             <div class="invalid-feedback">El teléfono es obligatorio.</div>
           </div>
-
         </div>
-        
         <div class="modal-footer border-top-0 bg-light">
           <button type="button" class="btn btn-outline-secondary rounded-3" (click)="cerrarModal()">Cancelar</button>
           <button type="submit" class="btn btn-primary rounded-3">Guardar Paciente</button>
         </div>
       </form>
-
     </div>
   </div>
 </div>
-
 <div *ngIf="mostrarModal" class="modal-backdrop fade show"></div>
-
 
 <div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalEliminar}" [style.display]="mostrarModalEliminar ? 'block' : 'none'">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
@@ -125,7 +129,6 @@
         <p class="text-secondary small px-2">
           Estás a punto de borrar la ficha médica de <strong>{{ pacienteAEliminar?.nombre }}</strong>. Esta acción eliminará permanentemente sus datos de la nube y no se puede deshacer.
         </p>
-        
         <div class="d-flex gap-2 justify-content-center mt-4">
           <button type="button" class="btn btn-light px-4 rounded-3 fw-semibold text-secondary border" (click)="cerrarModalEliminar()">Cancelar</button>
           <button type="button" class="btn btn-danger px-4 rounded-3 fw-semibold" (click)="confirmarEliminacion()">Eliminar Registro</button>
@@ -134,5 +137,4 @@
     </div>
   </div>
 </div>
-
 <div *ngIf="mostrarModalEliminar" class="modal-backdrop fade show"></div>

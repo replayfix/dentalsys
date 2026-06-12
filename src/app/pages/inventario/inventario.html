@@ -9,6 +9,20 @@
   </button>
 </div>
 
+<div class="row mb-3">
+  <div class="col-md-5 col-lg-4">
+    <div class="input-group shadow-sm rounded-3 overflow-hidden border">
+      <span class="input-group-text bg-white border-0 text-muted pe-1">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" 
+             class="form-control bg-white border-0 py-2 ps-2 small" 
+             placeholder="Buscar insumo o categoría..." 
+             (input)="onBuscarInsumo($event)">
+    </div>
+  </div>
+</div>
+
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
@@ -31,7 +45,7 @@
         </tr>
 
         <ng-container *ngIf="!cargando">
-          <tr *ngFor="let insumo of insumos">
+          <tr *ngFor="let insumo of insumosFiltrados">
             <td class="ps-4 py-3 fw-bold text-dark">{{ insumo.nombre }}</td>
             <td class="py-3"><span class="badge bg-light text-secondary border px-2 py-1">{{ insumo.categoria }}</span></td>
             <td class="py-3 text-center fw-medium text-secondary">{{ insumo.stockMinimo }} ud.</td>
@@ -46,7 +60,6 @@
                 <i class="bi bi-check-circle-fill me-1"></i> Abastecido
               </span>
             </td>
-            
             <td class="text-end pe-4 py-3">
               <button (click)="abrirModalEditar(insumo)" class="btn btn-sm btn-light text-primary me-2" title="Editar Material / Reabastecer">
                 <i class="bi bi-pencil-square"></i>
@@ -57,10 +70,10 @@
             </td>
           </tr>
 
-          <tr *ngIf="insumos.length === 0">
+          <tr *ngIf="insumosFiltrados.length === 0">
             <td colspan="6" class="text-center py-5 text-muted">
-              <i class="bi bi-box-seam fs-1 d-block mb-2 text-light"></i>
-              No hay materiales registrados en el almacén.
+              <i class="bi bi-box-seam-fill fs-1 d-block mb-2 text-light"></i>
+              No se encontraron insumos con ese nombre o categoría.
             </td>
           </tr>
         </ng-container>
@@ -72,7 +85,6 @@
 <div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModal}" [style.display]="mostrarModal ? 'block' : 'none'">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4">
-      
       <div class="modal-header bg-light border-bottom-0 p-3">
         <h5 class="modal-title fw-bold text-navy">
           <i class="bi bi-box-seam text-primary me-2"></i>
@@ -80,24 +92,20 @@
         </h5>
         <button type="button" class="btn-close shadow-none" (click)="cerrarModal()"></button>
       </div>
-
       <form [formGroup]="insumoForm" (ngSubmit)="guardarInsumo()">
         <div class="modal-body p-4">
-          
           <div class="mb-3">
             <label class="form-label fw-semibold text-secondary">Nombre del Material</label>
             <input type="text" class="form-control bg-light border-0" formControlName="nombre" placeholder="Ej. Resina Filtek Z350 A2"
                    [ngClass]="{'is-invalid': insumoForm.get('nombre')?.invalid && insumoForm.get('nombre')?.touched}">
             <div class="invalid-feedback">El nombre es obligatorio.</div>
           </div>
-
           <div class="mb-3">
             <label class="form-label fw-semibold text-secondary">Categoría</label>
             <select class="form-select bg-light border-0" formControlName="categoria">
               <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
             </select>
           </div>
-
           <div class="row g-3">
             <div class="col-6">
               <label class="form-label fw-semibold text-secondary">Stock Actual</label>
@@ -108,21 +116,16 @@
               <input type="number" class="form-control bg-light border-0" formControlName="stockMinimo" min="0">
             </div>
           </div>
-
         </div>
-        
         <div class="modal-footer border-top-0 bg-light p-3">
           <button type="button" class="btn btn-outline-secondary rounded-3" (click)="cerrarModal()">Cancelar</button>
           <button type="submit" class="btn btn-primary rounded-3 px-4">Guardar Insumo</button>
         </div>
       </form>
-
     </div>
   </div>
 </div>
-
 <div *ngIf="mostrarModal" class="modal-backdrop fade show"></div>
-
 
 <div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalEliminar}" [style.display]="mostrarModalEliminar ? 'block' : 'none'">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
@@ -133,7 +136,6 @@
         <p class="text-secondary small px-2">
           Vas a remover <strong>{{ insumoAEliminar?.nombre }}</strong> por completo del catálogo. Esta acción no afectará las consultas pasadas, pero el insumo ya no se podrá seleccionar en futuras citas.
         </p>
-        
         <div class="d-flex gap-2 justify-content-center mt-4">
           <button type="button" class="btn btn-light px-4 rounded-3 fw-semibold text-secondary border" (click)="cerrarModalEliminar()">Cancelar</button>
           <button type="button" class="btn btn-danger px-4 rounded-3 fw-semibold" (click)="confirmarEliminacion()">Eliminar Catálogo</button>
@@ -142,5 +144,4 @@
     </div>
   </div>
 </div>
-
 <div *ngIf="mostrarModalEliminar" class="modal-backdrop fade show"></div>

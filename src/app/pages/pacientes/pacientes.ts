@@ -2,7 +2,7 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { PacientesService } from '../../core/services/pacientes'; // Ajusta la ruta exacta de tu servicio
+import { PacientesService } from '../../core/services/pacientes';
 
 @Component({
   selector: 'app-pacientes',
@@ -17,11 +17,13 @@ export class PacientesComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   pacientes: any[] = [];
+  pacientesFiltrados: any[] = []; // 👈 Arreglo secundario que dibuja la tabla
   cargando: boolean = true;
   mostrarModal: boolean = false;
   pacienteForm: FormGroup;
 
-  // Variables para el control del Modal de Eliminación
+  // Variables de control para búsqueda y eliminación
+  terminoBusqueda: string = ''; // 👈 Almacena el texto de búsqueda
   mostrarModalEliminar: boolean = false;
   pacienteAEliminar: any = null;
 
@@ -37,13 +39,32 @@ export class PacientesComponent implements OnInit {
     this.pacientesService.pacientes$.subscribe({
       next: (data) => {
         this.pacientes = data;
+        this.aplicarFiltro(); // 👈 Filtra inmediatamente cuando Firestore emite cambios
         this.cargando = false;
         this.cdr.detectChanges();
       }
     });
   }
 
-  // --- MÉTODOS DEL CRUD ELIMINAR ---
+  // --- NUEVO MÉTODO INTERACTIVO DE BÚSQUEDA ---
+  onBuscarPaciente(event: any) {
+    this.terminoBusqueda = event.target.value.toLowerCase();
+    this.aplicarFiltro();
+  }
+
+  aplicarFiltro() {
+    if (!this.terminoBusqueda.trim()) {
+      this.pacientesFiltrados = [...this.pacientes];
+    } else {
+      this.pacientesFiltrados = this.pacientes.filter(p => 
+        p.nombre.toLowerCase().includes(this.terminoBusqueda) || 
+        p.dni.includes(this.terminoBusqueda)
+      );
+    }
+    this.cdr.detectChanges();
+  }
+
+  // --- FLUJO ELIMINAR ---
   abrirModalEliminar(paciente: any) {
     this.pacienteAEliminar = paciente;
     this.mostrarModalEliminar = true;
@@ -65,7 +86,7 @@ export class PacientesComponent implements OnInit {
     }
   }
 
-  // --- MÉTODOS ANTERIORES DE REGISTRO ---
+  // --- CONTROLES DE REGISTRO ---
   abrirModal() { this.mostrarModal = true; }
   cerrarModal() { this.mostrarModal = false; this.pacienteForm.reset(); }
   guardarPaciente() {
