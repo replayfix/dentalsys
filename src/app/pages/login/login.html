@@ -1,0 +1,36 @@
+<div class="vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="card border-0 shadow-lg rounded-4 p-4 mx-3" style="width: 100%; max-width: 400px; background: white;">
+    
+    <div class="text-center mb-4">
+      <h2 class="fw-bold text-primary mb-1">DentalSys</h2>
+      <p class="text-secondary small mb-0">Gestión Clínica Odontológica</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      
+      <div *ngIf="errorMensaje" class="alert alert-danger small py-2 rounded-3 mb-3 d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMensaje }}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold text-secondary small">Correo Electrónico</label>
+        <input type="email" class="form-control bg-light border-0 py-2.5" formControlName="correo" placeholder="doctor@jtechserv.com"
+               [ngClass]="{'is-invalid': loginForm.get('correo')?.invalid && loginForm.get('correo')?.touched}">
+        <div class="invalid-feedback">Ingrese un correo válido.</div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-semibold text-secondary small">Contraseña</label>
+        <input type="password" class="form-control bg-light border-0 py-2.5" formControlName="contrasenia" placeholder="******"
+               [ngClass]="{'is-invalid': loginForm.get('contrasenia')?.invalid && loginForm.get('contrasenia')?.touched}">
+        <div class="invalid-feedback">La contraseña requiere un mínimo de 6 caracteres.</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-bold shadow-sm" [disabled]="cargando">
+        <span *ngIf="cargando" class="spinner-border spinner-border-sm me-2" role="status"></span>
+        {{ cargando ? 'Validando...' : 'Ingresar al Sistema' }}
+      </button>
+
+    </form>
+  </div>
+</div>

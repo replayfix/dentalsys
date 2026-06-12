@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
   firebase: {
-    apiKey: "AIzaSyDevUsd-JF-0hug5pcf1YVgQpLlI2yI8lg",
+    apiKey: "AIzaSyDevUsd-JF-0hug5pcf1YVgQpllI2yI8lg",
     authDomain: "dentalsys-487dd.firebaseapp.com",
     projectId: "dentalsys-487dd",
     storageBucket: "dentalsys-487dd.firebasestorage.app",

@@ -1,9 +1,18 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4 py-3 justify-content-between align-items-center shadow-sm">
-  <div class="navbar-brand-title">
-    </div>
+<div class="w-100 d-flex justify-content-between align-items-center px-4 py-3 bg-white border-bottom shadow-sm">
   
-  <div class="d-flex align-items-center gap-3">
-    <span class="text-muted">Bienvenido, <strong class="text-dark">{{ usuarioAdmin }}</strong></span>
-    <button class="btn btn-danger btn-sm px-3 rounded-2 fw-semibold">Salir</button>
+  <!-- Indicador izquierdo de protección de datos -->
+  <div class="text-secondary small fw-medium">
+    <i class="bi bi-shield-check text-success me-1"></i> Conexión Segura con Firestore Activa
   </div>
-</nav>
+  
+  <!-- Identificación dinámica del odontólogo en sesión (Botón "Salir" removido) -->
+  <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <span class="text-muted small">Bienvenido, <strong class="text-dark">{{ emailUsuario }}</strong></span>
+      <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small fw-bold">
+        Online
+      </span>
+    </div>
+  </div>
+
+</div>

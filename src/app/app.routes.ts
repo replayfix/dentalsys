@@ -1,17 +1,26 @@
 import { Routes } from '@angular/router';
+import { LoginComponent } from './pages/login/login';
 import { InicioComponent } from './pages/inicio/inicio';
 import { PacientesComponent } from './pages/pacientes/pacientes';
 import { NuevaConsultaComponent } from './pages/nueva-consulta/nueva-consulta';
 import { AtencionesComponent } from './pages/atenciones/atenciones';
 import { InventarioComponent } from './pages/inventario/inventario';
-import { ExpedienteComponent } from './pages/expediente/expediente'; // 👈 IMPORTA ESTO
+import { ExpedienteComponent } from './pages/expediente/expediente';
+import { authGuard } from './core/guards/auth.guard'; // 👈 Importamos nuestro guardián
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/inicio', pathMatch: 'full' },
-  { path: 'inicio', component: InicioComponent },
-  { path: 'pacientes', component: PacientesComponent },
-  { path: 'nueva-consulta', component: NuevaConsultaComponent },
-  { path: 'atenciones', component: AtencionesComponent },
-  { path: 'inventario', component: InventarioComponent },
-  { path: 'expediente', component: ExpedienteComponent } // 👈 RUTA MAPEADA CON ÉXITO
+  // Ruta pública inicial
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  
+  // Rutas privadas protegidas por el token de Firebase
+  { path: 'inicio', component: InicioComponent, canActivate: [authGuard] },
+  { path: 'pacientes', component: PacientesComponent, canActivate: [authGuard] },
+  { path: 'nueva-consulta', component: NuevaConsultaComponent, canActivate: [authGuard] },
+  { path: 'atenciones', component: AtencionesComponent, canActivate: [authGuard] },
+  { path: 'inventario', component: InventarioComponent, canActivate: [authGuard] },
+  { path: 'expediente', component: ExpedienteComponent, canActivate: [authGuard] },
+  
+  // Comodín para rebotar desvíos
+  { path: '**', redirectTo: '/login' }
 ];
