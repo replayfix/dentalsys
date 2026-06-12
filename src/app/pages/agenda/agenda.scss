@@ -1,0 +1,59 @@
+// Color corporativo del sistema
+.text-navy {
+  color: #0a2540 !important;
+}
+
+// Fuerza a la tabla a distribuir las 7 columnas con el mismo ancho exacto
+.table-fixed {
+  table-layout: fixed;
+}
+
+// Opacidad y tono gris para los días que no pertenecen al mes actual
+.text-mutedOpacity {
+  color: #adb5bd !important;
+  background-color: #fdfdfe !important;
+  opacity: 0.6;
+}
+
+// Interactividad smooth en las celdas del calendario
+td {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+td:hover {
+  background-color: rgba(10, 37, 64, 0.03) !important;
+  box-shadow: inset 0 0 0 1px rgba(13, 110, 253, 0.5); // Sutil marco azul interno al enfocar el día
+}
+
+// Estilización premium para la barra de scroll interna de las citas
+.overflow-y-auto {
+  &::-webkit-scrollbar {
+    width: 4px; // Barra ultra delgada
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #e9ecef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #dee2e6;
+  }
+}
+
+// Control anti-desbordamiento para los bloques de citas
+.font-monospace.border {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; // Agrega el "..." si el nombre del paciente es muy largo
+  transition: all 0.2s ease;
+  
+  &:hover {
+    white-space: normal; // Muestra el nombre completo y motivo al pasar el mouse por encima
+    position: relative;
+    z-index: 5;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+}

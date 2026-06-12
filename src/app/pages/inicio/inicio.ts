@@ -1,11 +1,13 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router'; // 👈 Importamos RouterModule para dar soporte a enlaces interactivos
 import { combineLatest } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 // Importamos las configuraciones necesarias de Chart.js
 import { Chart, registerables, ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { PacientesService } from '../../core/services/pacientes';
 import { ConsultasService } from '../../core/services/consultas';
+import { CitasService, Cita } from '../../core/services/citas'; // 👈 Importamos el servicio y la interfaz de citas
 
 // Registro obligatorio global de los elementos de Chart.js
 Chart.register(...registerables);
@@ -13,13 +15,14 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-inicio',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective],
+  imports: [CommonModule, BaseChartDirective, RouterModule], // 👈 Agregamos el RouterModule a la lista de imports
   templateUrl: './inicio.html',
   styleUrls: ['./inicio.scss']
 })
 export class InicioComponent implements OnInit {
   private pacientesService = inject(PacientesService);
   private consultasService = inject(ConsultasService);
+  private citasService = inject(CitasService); // 👈 Inyectamos el servicio de la agenda
   private cdr = inject(ChangeDetectorRef);
 
   // Variables para las tarjetas de métricas
@@ -27,6 +30,10 @@ export class InicioComponent implements OnInit {
   gananciasMes: number = 0;
   totalConsultas: number = 0;
   cargando: boolean = true;
+
+  // 👈 Nuevas variables reactivas integradas para el widget del Dashboard
+  citasHoy: Cita[] = [];
+  cargandoCitas: boolean = true;
 
   nombreMeses: string[] = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -76,7 +83,10 @@ export class InicioComponent implements OnInit {
   };
 
   ngOnInit() {
-    // Escuchamos ambas colecciones de Firebase en tiempo real de forma unificada
+    // 1. 👈 Lanzamos la lectura paralela de los turnos programados para el día de hoy
+    this.obtenerCitasDelDia();
+
+    // 2. Escuchamos ambas colecciones de Firebase en tiempo real de forma unificada para el rendimiento financiero
     combineLatest([
       this.pacientesService.pacientes$,
       this.consultasService.consultas$
@@ -130,6 +140,30 @@ export class InicioComponent implements OnInit {
         this.cargando = false;
         this.cdr.detectChanges();
       }
+    });
+  }
+
+  // 👈 NUEVO MÉTODO INTEGRADO UNIFICADO
+  obtenerCitasDelDia() {
+    // Generar la fecha de hoy en formato exacto YYYY-MM-DD
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd = String(hoy.getDate()).padStart(2, '0');
+    const fechaHoyString = `${yyyy}-${mm}-${dd}`;
+
+    // Escuchar la colección de Firestore en tiempo real
+    this.citasService.citas$.subscribe({
+      next: (todasLasCitas) => {
+        // Filtrar solo las de hoy y ordenarlas cronológicamente por hora
+        this.citasHoy = todasLasCitas
+          .filter(cita => cita.fecha === fechaHoyString)
+          .sort((a, b) => a.hora.localeCompare(b.hora));
+        
+        this.cargandoCitas = false;
+        this.cdr.detectChanges(); // Forzar renderizado reactivo limpio en el widget
+      },
+      error: (err) => console.error('Error cargando citas en inicio:', err)
     });
   }
 }

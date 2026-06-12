@@ -1,0 +1,182 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold text-navy mb-0">Agenda de Citas</h2>
+    <p class="text-secondary mb-0">Visualización cronológica y control de turnos del consultorio</p>
+  </div>
+
+  <div class="d-flex align-items-center gap-2 bg-white p-2 rounded-3 shadow-sm border">
+    <button class="btn btn-sm btn-light border" (click)="cambiarMes(-1)">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <span class="fw-bold px-3 text-navy text-center" style="min-width: 160px;">{{ nombreMes }}</span>
+    <button class="btn btn-sm btn-light border" (click)="cambiarMes(1)">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+  <div class="table-responsive">
+    <table class="table table-bordered table-fixed mb-0 border-light-subtle" style="min-width: 700px;">
+      <thead class="table-light text-center">
+        <tr>
+          <th *ngFor="let dia of nombresDias" class="py-3 text-secondary fw-semibold" style="width: 14.28%;">
+            {{ dia }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="cargando">
+          <td colspan="7" class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm text-primary me-2"></div> Sincronizando agenda...
+          </td>
+        </tr>
+
+        <ng-container *ngIf="!cargando">
+          <tr *ngFor="let semana of [0,1,2,3,4,5]">
+            <td *ngFor="let indiceDia of [0,1,2,3,4,5,6]" 
+                class="p-1 align-top position-relative" 
+                style="height: 120px;"
+                [ngClass]="{
+                  'bg-light-subtle text-mutedOpacity': !esMesActual(diasDelMes[semana*7 + indiceDia]),
+                  'bg-white text-dark': esMesActual(diasDelMes[semana*7 + indiceDia]),
+                  'bg-primary-subtle bg-opacity-25': esHoy(diasDelMes[semana*7 + indiceDia])
+                }">
+                
+              <ng-container *ngIf="diasDelMes[semana*7 + indiceDia] as dia">
+                <div class="d-flex justify-content-between align-items-center p-1">
+                  <span class="small fw-bold px-2 py-0.5 rounded-circle" 
+                        [ngClass]="{'bg-primary text-white': esHoy(dia), 'text-secondary': !esHoy(dia)}">
+                    {{ dia.getDate() }}
+                  </span>
+                  
+                  <button (click)="abrirModalNuevo(dia)" class="btn btn-link p-0 text-primary small text-decoration-none" title="Agendar Cita">
+                    <i class="bi bi-plus-circle-fill"></i>
+                  </button>
+                </div>
+
+                <div class="overflow-y-auto px-1" style="max-height: 80px;">
+                  <div *ngFor="let cita of getCitasDelDia(dia)" 
+                       (click)="abrirModalGestion(cita, $event)"
+                       class="border rounded-2 p-1 mb-1 font-monospace" 
+                       style="font-size: 11px; line-height: 1.2; cursor: pointer;"
+                       [ngClass]="{
+                         'bg-warning-subtle text-warning-emphasis border-warning-subtle': cita.estado === 'Pendiente',
+                         'bg-primary-subtle text-primary-emphasis border-primary-subtle': cita.estado === 'Confirmada',
+                         'bg-success-subtle text-success-emphasis border-success-subtle': cita.estado === 'Atendida',
+                         'bg-danger-subtle text-danger-emphasis border-danger-subtle': cita.estado === 'No Asistió'
+                       }"
+                       [title]="'Motivo: ' + cita.motivo">
+                    <strong>{{ cita.hora }}</strong> - {{ cita.pacienteNombre }}
+                  </div>
+                </div>
+              </ng-container>
+              
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModal}" [style.display]="mostrarModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-light border-bottom-0">
+        <h5 class="modal-title fw-bold text-navy"><i class="bi bi-calendar-plus text-primary me-2"></i>... Turno Médico</h5>
+        <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+      </div>
+      <form [formGroup]="citaForm" (ngSubmit)="guardarCita()">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary">Seleccionar Paciente</label>
+            <select class="form-select bg-light border-0" formControlName="pacienteIndex">
+              <option value="" disabled selected>Elija un paciente registrado...</option>
+              <option *ngFor="let pac of pacientes; let idx = index" [value]="idx">{{ pac.nombre }} (DNI: {{ pac.dni }})</option>
+            </select>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold text-secondary">Fecha</label>
+              <input type="date" class="form-control bg-light border-0" formControlName="fecha" readonly>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold text-secondary">Hora de la Cita</label>
+              <input type="time" class="form-control bg-light border-0" formControlName="hora">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary">Estado de la Reserva</label>
+            <select class="form-select bg-light border-0" formControlName="estado">
+              <option value="Pendiente">🟡 Pendiente por Confirmar</option>
+              <option value="Confirmada">🔵 Confirmada / Reservada</option>
+              <option value="Atendida">🟢 Atendida por el Especialista</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary">Tratamiento / Motivo</label>
+            <textarea class="form-control bg-light border-0" formControlName="motivo" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 bg-light">
+          <button type="button" class="btn btn-outline-secondary rounded-3" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary rounded-3 px-4">Confirmar Turno</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div *ngIf="mostrarModal" class="modal-backdrop fade show"></div>
+
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalGestion}" [style.display]="mostrarModalGestion ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-light border-bottom-0 p-3">
+        <h5 class="modal-title fw-bold text-navy">
+          <i class="bi bi-gear-fill text-secondary me-2"></i>Gestionar Turno Médico
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModalGestion()"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        <div class="bg-light p-3 rounded-3 border mb-4">
+          <h6 class="fw-bold text-dark mb-1"><i class="bi bi-person-fill text-primary me-2"></i>{{ citaSeleccionada?.pacienteNombre }}</h6>
+          <p class="small text-secondary mb-2">
+            <i class="bi bi-clock me-2"></i>Hora reservada: <strong>{{ citaSeleccionada?.hora }}</strong>
+          </p>
+          <p class="small text-muted mb-0 font-monospace" style="font-size: 12px;">
+            <i class="bi bi-chat-left-text me-2"></i>Motivo: "{{ citaSeleccionada?.motivo }}"
+          </p>
+        </div>
+
+        <label class="form-label fw-semibold text-secondary small uppercase mb-2">Actualizar Estado del Paciente</label>
+        <div class="d-flex flex-column gap-2 mb-4">
+          <button type="button" class="btn btn-outline-success text-start rounded-3 py-2 px-3 small" (click)="cambiarEstadoCita('Atendida')">
+            🟢 Marcar como <strong>Atendido por el Especialista</strong>
+          </button>
+          <button type="button" class="btn btn-outline-primary text-start rounded-3 py-2 px-3 small" (click)="cambiarEstadoCita('Confirmada')">
+            🔵 Restablecer a <strong>Confirmada / Reservada</strong>
+          </button>
+          <button type="button" class="btn btn-outline-warning text-start rounded-3 py-2 px-3 small" (click)="cambiarEstadoCita('Pendiente')">
+            🟡 Dejar en <strong>Pendiente por Confirmar</strong>
+          </button>
+          <button type="button" class="btn btn-outline-danger text-start rounded-3 py-2 px-3 small" (click)="cambiarEstadoCita('No Asistió')">
+            🔴 Paciente ausente: <strong>Marcar como No Asistió</strong>
+          </button>
+        </div>
+
+        <hr class="text-muted">
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <button type="button" class="btn btn-link text-danger text-decoration-none small p-0" (click)="removerCita()">
+            <i class="bi bi-trash3-fill me-1"></i> Eliminar Turno del Registro
+          </button>
+          <button type="button" class="btn btn-secondary rounded-3 px-4 small" (click)="cerrarModalGestion()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="mostrarModalGestion" class="modal-backdrop fade show"></div>

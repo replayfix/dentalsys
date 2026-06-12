@@ -21,6 +21,13 @@ export const routes: Routes = [
   { path: 'inventario', component: InventarioComponent, canActivate: [authGuard] },
   { path: 'expediente', component: ExpedienteComponent, canActivate: [authGuard] },
   
-  // Comodín para rebotar desvíos
+  // NUEVA RUTA DE LA AGENDA: Configurada con Lazy Loading reactivo y protegida
+  { 
+    path: 'agenda', 
+    loadComponent: () => import('./pages/agenda/agenda').then(m => m.AgendaComponent), 
+    canActivate: [authGuard] 
+  },
+  
+  // Comodín para rebotar desvíos (Siempre al final)
   { path: '**', redirectTo: '/login' }
 ];
