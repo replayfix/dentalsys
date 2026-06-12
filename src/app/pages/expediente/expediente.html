@@ -1,63 +1,78 @@
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
   <div>
-    <h2 class="fw-bold text-navy mb-0">Historial de Atenciones</h2>
-    <p class="text-secondary mb-0">Registro cronológico de consultas médicas y presupuestos</p>
+    <div class="d-flex align-items-center gap-2 text-muted small fw-semibold mb-1">
+      <a [routerLink]="['/pacientes']" class="text-decoration-none text-secondary">Directorio</a>
+      <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+      <span>Expediente Clínico</span>
+    </div>
+    <h2 class="fw-bold text-navy mb-0">Expediente: <span class="text-primary">{{ pacienteNombre }}</span></h2>
+  </div>
+  <a [routerLink]="['/pacientes']" class="btn btn-outline-secondary rounded-3">
+    <i class="bi bi-arrow-left me-1"></i> Volver
+  </a>
+</div>
+
+<div *ngIf="cargando" class="text-center py-5 text-muted">
+  <div class="spinner-border text-primary border-2 mb-2" role="status"></div>
+  <p class="small">Recuperando historial cronológico...</p>
+</div>
+
+<div *ngIf="!cargando" class="row">
+  <div class="col-xl-9 mx-auto">
+    
+    <div *ngIf="consultasPaciente.length === 0" class="card border-0 shadow-sm rounded-4 p-5 text-center text-muted bg-white">
+      <i class="bi bi-journal-x fs-1 text-light d-block mb-3"></i>
+      <h5 class="fw-bold text-dark">Sin historial registrado</h5>
+      <p class="small mb-0">Este paciente está limpio. Aún no se han guardado consultas ni odontogramas a su nombre.</p>
+    </div>
+
+    <div class="timeline-container ps-3 position-relative" *ngIf="consultasPaciente.length > 0">
+      
+      <div class="timeline-item position-relative mb-4" *ngFor="let consulta of consultasPaciente">
+        
+        <div class="timeline-badge bg-primary shadow-sm position-absolute rounded-circle"></div>
+
+        <div class="card border-0 shadow-sm rounded-4 border-start border-4 border-primary bg-white ms-4 ms-md-5">
+          <div class="card-body p-4">
+            
+            <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-2 mb-3 gap-2">
+              <div>
+                <span class="text-muted small fw-semibold d-block"><i class="bi bi-calendar3 me-1"></i>Fecha de Atención</span>
+                <strong class="text-dark fs-6">{{ consulta.fechaRegistro | date:'dd/MM/yyyy hh:mm a' }}</strong>
+              </div>
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <span class="text-muted small fw-semibold d-block text-end">Costo Cobrado</span>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill fw-bold">
+                    S/ {{ consulta.costoAtencion | number:'1.2-2' }}
+                  </span>
+                </div>
+                <button type="button" class="btn btn-primary rounded-3 btn-sm px-3 fw-semibold" (click)="verFichaDetallada(consulta)">
+                  <i class="bi bi-eye-fill me-1"></i> Ver Ficha
+                </button>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-2 mb-md-0">
+                <span class="text-muted small fw-bold text-uppercase tracking-wider d-block mb-1">Motivo de Consulta</span>
+                <p class="text-secondary small mb-0 font-medium-text">{{ consulta.motivo }}</p>
+              </div>
+              <div class="col-md-6">
+                <span class="text-muted small Bars fw-bold text-uppercase tracking-wider d-block mb-1">Plan Establecido</span>
+                <p class="text-secondary small mb-0 font-medium-text text-truncate-two">{{ consulta.planTratamiento }}</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
   </div>
 </div>
 
-<!-- Tabla General de Atenciones -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
-  <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
-      <thead class="table-light">
-        <tr>
-          <th scope="col" class="ps-4 py-3 text-secondary fw-semibold">Fecha</th>
-          <th scope="col" class="py-3 text-secondary fw-semibold">Paciente</th>
-          <th scope="col" class="py-3 text-secondary fw-semibold">Motivo de Consulta</th>
-          <th scope="col" class="py-3 text-secondary fw-semibold">Costo</th>
-          <th scope="col" class="text-end pe-4 py-3 text-secondary fw-semibold">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="cargando">
-          <td colspan="5" class="text-center py-5 text-muted">
-            <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
-            Sincronizando historial médico...
-          </td>
-        </tr>
-
-        <ng-container *ngIf="!cargando">
-          <tr *ngFor="let consulta of consultas">
-            <td class="ps-4 py-3 text-muted fw-medium">
-              {{ consulta.fechaRegistro | date:'dd/MM/yyyy hh:mm a' }}
-            </td>
-            <td class="py-3 fw-bold text-dark">{{ consulta.pacienteNombre }}</td>
-            <td class="py-3 text-truncate-custom">{{ consulta.motivo }}</td>
-            <td class="py-3">
-              <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">
-                S/ {{ consulta.costoAtencion | number:'1.2-2' }}
-              </span>
-            </td>
-            <td class="text-end pe-4 py-3">
-              <button class="btn btn-sm btn-light text-primary fw-semibold px-3 rounded-3" (click)="verDetalleConsulta(consulta)">
-                <i class="bi bi-eye-fill me-1"></i> Ver Ficha
-              </button>
-            </td>
-          </tr>
-
-          <tr *ngIf="consultas.length === 0">
-            <td colspan="5" class="text-center py-5 text-muted">
-              <i class="bi bi-folder-x fs-1 d-block mb-2 text-light"></i>
-              No se han registrado consultas clínicas aún.
-            </td>
-          </tr>
-        </ng-container>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- MODAL DE FICHA CLÍNICA DETALLADA -->
 <div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalDetalle}" [style.display]="mostrarModalDetalle ? 'block' : 'none'">
   <div class="modal-dialog modal-dialog-centered modal-xl"> 
     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -70,7 +85,6 @@
       <div class="modal-body p-4 bg-light" *ngIf="consultaSeleccionada">
         <div class="row g-4">
           
-          <!-- COLUMNA 1: DATOS DE ATENCIÓN -->
           <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
               <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Datos de Atención</h6>
@@ -96,16 +110,13 @@
             </div>
           </div>
 
-          <!-- COLUMNA 2: HALLAZGOS (ODONTOGRAMA) -->
           <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
               <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Hallazgos (Odontograma)</h6>
-              
               <div *ngIf="hallazgosDeteccion.length === 0" class="text-muted text-center py-4 small">
                 <i class="bi bi-shield-check text-success fs-3 d-block mb-1"></i>
                 Dentadura completa sin anomalías registradas.
               </div>
-
               <ul class="list-unstyled d-flex flex-column gap-2 mb-0 overflow-auto" style="max-height: 250px;" *ngIf="hallazgosDeteccion.length > 0">
                 <li *ngFor="let h of hallazgosDeteccion" class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3">
                   <span class="text-secondary fw-medium">
@@ -113,24 +124,19 @@
                     Diente <strong>{{ h.numero }}</strong>: {{ h.cara }}
                   </span>
                   <span class="badge rounded-pill px-2 py-1 small fw-bold {{ h.badgeClase }}">
-                    {{ h.estado }}
+                    {{ h.state }}
                   </span>
                 </li>
               </ul>
             </div>
           </div>
 
-          <!-- COLUMNA 3: MATERIALES UTILIZADOS (COMPLETAMENTE DINÁMICA) -->
           <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
               <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Materiales Utilizados</h6>
-              
-              <!-- Alerta visual si no hay insumos cargados -->
               <div *ngIf="!consultaSeleccionada.insumosUtilizados || consultaSeleccionada.insumosUtilizados.length === 0" class="text-muted text-center py-5 small italic-style">
                 No se consumieron insumos en esta sesión.
               </div>
-
-              <!-- Listado dinámico de insumos recuperados desde Firestore -->
               <ul class="list-unstyled d-flex flex-column gap-2 mb-0 overflow-auto" style="max-height: 250px;" *ngIf="consultaSeleccionada.insumosUtilizados && consultaSeleccionada.insumosUtilizados.length > 0">
                 <li *ngFor="let mat of consultaSeleccionada.insumosUtilizados" class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3">
                   <span class="text-secondary fw-medium text-truncate" style="max-width: 180px;">
@@ -146,7 +152,6 @@
 
         </div>
 
-        <!-- FILA INFERIOR: OBSERVACIONES Y TRATAMIENTO -->
         <div class="row mt-4">
           <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 p-4 border-start border-4 border-warning bg-white">

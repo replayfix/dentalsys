@@ -1,8 +1,10 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router'; // Para leer la URL y navegar
+// 1. 👇 Asegúrate de importar también 'FormsModule' aquí arriba
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ConsultasService, Consulta } from '../../core/services/consultas';
+import { InventarioService, Insumo } from '../../core/services/inventario';
 
 export type EstadoZona = 'sano' | 'caries' | 'obturado';
 
@@ -18,20 +20,27 @@ export interface Diente {
 @Component({
   selector: 'app-nueva-consulta',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  // 2. 👇 ¡AGREGAMOS FormsModule AQUÍ EN EL ARREGLO!
+  imports: [CommonModule, ReactiveFormsModule, FormsModule], 
   templateUrl: './nueva-consulta.html',
   styleUrls: ['./nueva-consulta.scss']
 })
 export class NuevaConsultaComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private route = inject(ActivatedRoute); // Inyectamos el lector de URL
-  private router = inject(Router); // Inyectamos el enrutador
-  private consultasService = inject(ConsultasService); // Inyectamos el servicio de Firebase
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private consultasService = inject(ConsultasService);
+  private inventarioService = inject(InventarioService);
 
   consultaForm!: FormGroup;
   pacienteNombre: string = '';
 
-  // Inicialización de cuadrantes dentales
+  insumosDisponibles: Insumo[] = [];
+  insumosUsados: { insumoId: string; nombre: string; cantidad: number }[] = [];
+  
+  insumoSeleccionadoId: string = '';
+  cantidadInsumo: number = 1;
+
   crearDiente = (n: number): Diente => ({ 
     numero: n, top: 'sano', bottom: 'sano', left: 'sano', right: 'sano', center: 'sano' 
   });
@@ -42,9 +51,8 @@ export class NuevaConsultaComponent implements OnInit {
   cuadrante3: Diente[] = [31, 32, 33, 34, 35, 36, 37, 38].map(this.crearDiente);
 
   ngOnInit() {
-    // 1. Inicializamos el formulario reactivo
     this.consultaForm = this.fb.group({
-      pacienteId: [{ value: '', disabled: true }, Validators.required], // Deshabilitado para que no se altere a mano
+      pacienteId: [{ value: '', disabled: true }, Validators.required],
       presionArterial: ['120/80'],
       frecuenciaCardiaca: ['70'],
       costoAtencion: [0, [Validators.required, Validators.min(0)]],
@@ -52,17 +60,52 @@ export class NuevaConsultaComponent implements OnInit {
       planTratamiento: ['', Validators.required]
     });
 
-    // 2. Capturamos los datos del paciente que vienen desde la tabla
     this.route.queryParams.subscribe(params => {
       if (params['id']) {
-        // Colocamos el ID real en el input
         this.consultaForm.patchValue({ pacienteId: params['id'] });
-        // Guardamos el nombre en la variable para mostrarlo si deseas en el HTML
         this.pacienteNombre = params['nombre'];
       } else {
         this.consultaForm.patchValue({ pacienteId: 'Sin paciente seleccionado' });
       }
     });
+
+    this.inventarioService.insumos$.subscribe(data => {
+      this.insumosDisponibles = data;
+    });
+  }
+
+  agregarInsumo() {
+    if (!this.insumoSeleccionadoId || this.cantidadInsumo <= 0) return;
+
+    const insumoOriginal = this.insumosDisponibles.find(i => i.id === this.insumoSeleccionadoId);
+    if (!insumoOriginal) return;
+
+    if (this.cantidadInsumo > insumoOriginal.stockActual) {
+      alert(`Stock insuficiente. Solo quedan ${insumoOriginal.stockActual} unidades de ${insumoOriginal.nombre}.`);
+      return;
+    }
+
+    const existente = this.insumosUsados.find(i => i.insumoId === this.insumoSeleccionadoId);
+    if (existente) {
+      if ((existente.cantidad + this.cantidadInsumo) > insumoOriginal.stockActual) {
+        alert(`No puedes superar el stock disponible en almacén.`);
+        return;
+      }
+      existente.cantidad += this.cantidadInsumo;
+    } else {
+      this.insumosUsados.push({
+        insumoId: this.insumoSeleccionadoId,
+        nombre: insumoOriginal.nombre,
+        cantidad: this.cantidadInsumo
+      });
+    }
+
+    this.insumoSeleccionadoId = '';
+    this.cantidadInsumo = 1;
+  }
+
+  quitarInsumo(index: number) {
+    this.insumosUsados.splice(index, 1);
   }
 
   cambiarEstadoZona(diente: Diente, zona: 'top' | 'bottom' | 'left' | 'right' | 'center') {
@@ -75,14 +118,12 @@ export class NuevaConsultaComponent implements OnInit {
     }
   }
 
-  guardarConsulta() {
-    // Como el input de pacienteId está 'disabled', usamos getRawValue() para obtener su información
+guardarConsulta() {
     const formValues = this.consultaForm.getRawValue();
 
     if (this.consultaForm.valid && formValues.pacienteId) {
       
-      // Creamos el objeto exacto listo para subir a Firestore
-      const nuevaConsulta: Consulta = {
+      const nuevaConsulta: any = {
         pacienteId: formValues.pacienteId,
         pacienteNombre: this.pacienteNombre || 'Desconocido',
         presionArterial: formValues.presionArterial,
@@ -91,7 +132,7 @@ export class NuevaConsultaComponent implements OnInit {
         motivo: formValues.motivo,
         planTratamiento: formValues.planTratamiento,
         fechaRegistro: Date.now(),
-        // Enviamos la "fotografía" de cómo quedó el odontograma mapeado en este momento
+        insumosUtilizados: this.insumosUsados, 
         odontograma: {
           cuadrante1: this.cuadrante1,
           cuadrante2: this.cuadrante2,
@@ -100,15 +141,44 @@ export class NuevaConsultaComponent implements OnInit {
         }
       };
 
-      // Guardamos en Firebase de verdad
+      console.log('🚀 Iniciando guardado de consulta...', nuevaConsulta);
+
+      // 1. Guardar la consulta clínica primero
       this.consultasService.addConsulta(nuevaConsulta)
         .then(() => {
-          alert(`¡Consulta de ${this.pacienteNombre} registrada con éxito en Firestore!`);
-          this.router.navigate(['/pacientes']); // Redirigimos al directorio de pacientes
+          console.log('✅ Consulta registrada en Firestore. Procesando inventario...');
+          
+          // 2. Mapeamos las promesas asegurando el casteo a número
+          const promesasDescuento = this.insumosUsados.map(insumoUsado => {
+            const original = this.insumosDisponibles.find(i => i.id === insumoUsado.insumoId);
+            
+            if (original) {
+              // Convertimos explícitamente a números para evitar que "20 - '2'" rompa Firebase
+              const stockActualNum = Number(original.stockActual);
+              const cantidadUsadaNum = Number(insumoUsado.cantidad);
+              const nuevoStock = stockActualNum - cantidadUsadaNum;
+
+              console.log(`📦 Modificando [${original.nombre}]: Stock anterior = ${stockActualNum} | Restando = ${cantidadUsadaNum} | Nuevo Stock Destino = ${nuevoStock}`);
+
+              return this.inventarioService.actualizarStock(insumoUsado.insumoId, nuevoStock >= 0 ? nuevoStock : 0);
+            }
+            
+            console.warn(`⚠️ No se encontró el insumo con ID: ${insumoUsado.insumoId} en la lista local.`);
+            return Promise.resolve();
+          });
+
+          // 3. Ejecutamos todas las actualizaciones en lote
+          return Promise.all(promesasDescuento);
+        })
+        .then(() => {
+          console.log('🎉 ¡Inventario actualizado con éxito en la nube!');
+          alert(`¡Consulta registrada e inventario actualizado con éxito!`);
+          this.router.navigate(['/pacientes']);
         })
         .catch(error => {
-          console.error('Error al guardar la historia clínica:', error);
-          alert('Hubo un error al conectar con Firebase.');
+          // Captura errores tanto de la consulta como del inventario
+          console.error('❌ ERROR CRÍTICO EN EL FLUJO:', error);
+          alert('Hubo un error al procesar la operación. Revisa la consola de desarrollador (F12).');
         });
 
     } else {

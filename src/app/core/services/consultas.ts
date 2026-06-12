@@ -2,6 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, addDoc, onSnapshot } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
+// Interfaz interna para tipar los insumos consumidos dentro de la consulta
+export interface InsumoUsado {
+  insumoId: string;
+  nombre: string;
+  cantidad: number;
+}
+
 export interface Consulta {
   id?: string;
   pacienteId: string;
@@ -12,6 +19,7 @@ export interface Consulta {
   motivo: string;
   planTratamiento: string;
   fechaRegistro: number;
+  insumosUtilizados?: InsumoUsado[]; // 👈 ¡ESTA ES LA LÍNEA CRÍTICA QUE FALTABA!
   odontograma: {
     cuadrante1: any[];
     cuadrante2: any[];
@@ -27,12 +35,12 @@ export class ConsultasService {
   private firestore = inject(Firestore);
   private consultasRef = collection(this.firestore, 'consultas');
 
-  // Método para guardar
+  // Método para guardar la consulta
   addConsulta(consulta: Consulta) {
     return addDoc(this.consultasRef, consulta);
   }
 
-  // NUEVO MÉTODO: Escucha en tiempo real libre de bugs de proxy
+  // Lector en tiempo real ordenado cronológicamente
   public consultas$: Observable<Consulta[]> = new Observable((subscriber) => {
     const unsubscribe = onSnapshot(this.consultasRef, (snapshot) => {
       const consultas: Consulta[] = [];
@@ -41,7 +49,7 @@ export class ConsultasService {
         consultas.push({ id: doc.id, ...doc.data() } as Consulta);
       });
       
-      // Ordenamos las consultas para que la última atención aparezca primero
+      // Ordenamos para que la última atención aparezca arriba
       consultas.sort((a, b) => b.fechaRegistro - a.fechaRegistro);
       
       subscriber.next(consultas);

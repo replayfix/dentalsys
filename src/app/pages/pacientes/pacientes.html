@@ -42,7 +42,17 @@
                  title="Nueva Consulta">
                 <i class="bi bi-clipboard2-pulse-fill"></i>
               </a>
-              <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
+
+              <a [routerLink]="['/expediente']" 
+                 [queryParams]="{ id: paciente.id, nombre: paciente.nombre }" 
+                 class="btn btn-sm btn-light text-info me-2" 
+                 title="Ver Expediente Clínico">
+                <i class="bi bi-journal-medical"></i>
+              </a>
+
+              <button class="btn btn-sm btn-light text-danger" title="Eliminar Paciente">
+                <i class="bi bi-trash"></i>
+              </button>
             </td>
           </tr>
 
