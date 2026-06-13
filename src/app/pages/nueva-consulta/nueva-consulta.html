@@ -2,9 +2,8 @@
 
 <div class="row g-4">
   
-  <!-- COLUMNA IZQUIERDA: DATOS CLÍNICOS, SIGNOS VITALES E INSUMOS -->
-  <div class="col-lg-5 col-xl-4">
-    <div class="card border-0 shadow-sm rounded-4">
+  <div class="col-lg-5 col-xl-4 d-flex flex-column gap-4">
+    <div class="card border-0 shadow-sm rounded-4 w-100 bg-white">
       <div class="card-body p-4">
         
         <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">Datos del Paciente y Signos Vitales</h5>
@@ -13,40 +12,70 @@
           
           <div class="mb-3">
             <label class="form-label text-secondary small fw-medium">Paciente (ID)</label>
-            <input type="text" class="form-control bg-light" formControlName="pacienteId">
+            <input type="text" class="form-control bg-light fw-semibold text-muted" formControlName="pacienteId">
           </div>
 
           <div class="row mb-3">
             <div class="col-md-6">
-              <label class="form-label text-secondary small fw-medium">Presión Arterial (mmHg)</label>
+              <label class="form-label text-secondary small fw-medium">Presión Arterial</label>
               <input type="text" class="form-control bg-light" formControlName="presionArterial">
             </div>
             <div class="col-md-6">
-              <label class="form-label text-secondary small fw-medium">Frec. Cardíaca (lpm)</label>
+              <label class="form-label text-secondary small fw-medium">Frec. Cardíaca</label>
               <input type="text" class="form-control bg-light" formControlName="frecuenciaCardiaca">
             </div>
           </div>
 
-          <div class="mb-3">
+          <div class="mb-4">
             <label class="form-label text-secondary small fw-medium">Costo de Atención (S/)</label>
-            <input type="number" class="form-control cost-input fw-bold" formControlName="costoAtencion">
+            <input type="number" class="form-control cost-input fw-bold fs-5 text-success" formControlName="costoAtencion">
           </div>
 
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-medium">Motivo de Consulta</label>
-            <textarea class="form-control" formControlName="motivo" rows="3" placeholder="Escriba el motivo..."></textarea>
+          <div class="mb-3 position-relative border-top pt-3">
+            <label class="form-label text-secondary small fw-bold text-uppercase tracking-wider text-primary">Buscar Tratamiento Médico</label>
+            <div class="input-group shadow-sm rounded-3 overflow-hidden">
+              <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-search"></i></span>
+              <input type="text" 
+                     class="form-control bg-light border-0 font-medium small shadow-none" 
+                     placeholder="Escriba tratamiento (Ej: Exodoncia...)"
+                     [(ngModel)]="terminoBusqueda"
+                     [ngModelOptions]="{standalone: true}"
+                     (input)="filtrarTratamientos()"
+                     (focus)="filtrarTratamientos()">
+            </div>
+
+            <ul class="dropdown-menu w-100 show border-0 shadow-lg mt-1 p-2 rounded-3" 
+                *ngIf="mostrarDropdown" 
+                style="max-height: 200px; overflow-y: auto; z-index: 1050; display: block; position: absolute;">
+              <li *ngFor="let trat of tratamientosFiltrados">
+                <button type="button" class="dropdown-item rounded-2 py-2 small fw-medium text-dark" (click)="seleccionarTratamiento(trat)">
+                  <i class="bi bi-plus-circle text-primary me-2"></i>{{ trat.nombre }}
+                </button>
+              </li>
+            </ul>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label text-secondary small fw-medium">Plan de Tratamiento propuesto</label>
-            <textarea class="form-control" formControlName="planTratamiento" rows="3" placeholder="Escriba el tratamiento..."></textarea>
+          <div class="mb-4" *ngIf="listaTratamientosSeleccionados.length > 0">
+            <label class="form-label text-muted small fw-medium">Tratamientos cargados en sesión:</label>
+            <div class="d-flex flex-column gap-1.5 bg-light p-2 rounded-3 border" style="max-height: 120px; overflow-y: auto;">
+              <div *ngFor="let t of listaTratamientosSeleccionados" 
+                   (click)="setTratamientoActivo(t)"
+                   class="p-2 rounded-2 border bg-white d-flex align-items-center justify-content-between position-relative context-item"
+                   [ngClass]="{'border-primary bg-primary-subtle bg-opacity-25': tratamientoActivoParaAplicar?.id === t.id}"
+                   style="cursor: pointer; font-size: 12px;">
+                <span class="fw-bold text-dark text-truncate style-text" style="max-width: 190px;">
+                  <i class="bi" [ngClass]="tratamientoActivoParaAplicar?.id === t.id ? 'bi-check-circle-fill text-primary' : 'bi-circle text-muted'"></i> 
+                  {{ t.nombre }}
+                </span>
+                <button type="button" class="btn btn-link p-0 text-danger border-0 text-decoration-none" (click)="quitarTratamientoDeLista(t.id, $event)">
+                  <i class="bi bi-x-lg fw-bold" style="font-size: 11px;"></i>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <!-- NUEVA SECCIÓN: CONTROL DE INSUMOS UTILIZADOS EN SESIÓN -->
-          <div class="border-top pt-3 mt-4">
+          <div class="border-top pt-3">
             <h6 class="fw-bold text-dark mb-3"><i class="bi bi-box-seam text-primary me-2"></i>Insumos Consumidos</h6>
-            
-            <!-- Selector de material e ingreso de cantidad -->
             <div class="row g-2 mb-3">
               <div class="col-7">
                 <select class="form-select bg-light border-0 small text-muted shadow-none" [(ngModel)]="insumoSeleccionadoId" [ngModelOptions]="{standalone: true}">
@@ -60,26 +89,20 @@
                 <input type="number" class="form-control bg-light border-0 text-center shadow-none" min="1" [(ngModel)]="cantidadInsumo" [ngModelOptions]="{standalone: true}">
               </div>
               <div class="col-2">
-                <button type="button" class="btn btn-primary w-100 rounded-3 d-flex align-items-center justify-content-center" (click)="agregarInsumo()" [disabled]="!insumoSeleccionadoId">
+                <button type="button" class="btn btn-primary w-100 rounded-3" (click)="agregarInsumo()" [disabled]="!insumoSeleccionadoId">
                   <i class="bi bi-plus-lg"></i>
                 </button>
               </div>
             </div>
 
-            <!-- Listado temporal de insumos agregados -->
             <div class="bg-light rounded-3 p-2 border" *ngIf="insumosUsados.length > 0">
               <div *ngFor="let item of insumosUsados; let i = index" class="d-flex justify-content-between align-items-center bg-white border rounded-2 p-2 mb-1 shadow-sm">
-                <span class="small fw-medium text-dark text-truncate" style="max-width: 160px;">{{ item.nombre }}</span>
+                <span class="small fw-medium text-dark text-truncate" style="max-width: 140px;">{{ item.nombre }}</span>
                 <div class="d-flex align-items-center gap-2">
-                  <span class="badge bg-secondary rounded-pill font-monospace">x{{ item.cantidad }}</span>
+                  <span class="badge bg-secondary rounded-pill">x{{ item.cantidad }}</span>
                   <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="quitarInsumo(i)"><i class="bi bi-trash"></i></button>
                 </div>
               </div>
-            </div>
-
-            <!-- Estado cuando no hay insumos añadidos -->
-            <div class="text-center text-muted py-2 small" *ngIf="insumosUsados.length === 0" style="font-style: italic;">
-              No se han añadido insumos a esta sesión.
             </div>
           </div>
 
@@ -88,26 +111,37 @@
     </div>
   </div>
 
-  <!-- COLUMNA DERECHA: ODONTOGRAMA ADULTO INTERACTIVO -->
-  <div class="col-lg-7 col-xl-8">
-    <div class="card border-0 shadow-sm rounded-4">
+  <div class="col-lg-7 col-xl-8 d-flex flex-column gap-4">
+    <div class="card border-0 shadow-sm rounded-4 bg-white">
       <div class="card-body p-4">
         
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 border-bottom pb-3 gap-3">
-          <h5 class="fw-bold text-dark mb-0">Odontograma Adulto</h5>
-          <div class="d-flex gap-2">
-            <span class="border px-3 py-1 rounded-2 small fw-semibold bg-white text-secondary">Sano</span>
-            <span class="bg-danger text-white px-3 py-1 rounded-2 small fw-semibold">Caries (Clic 1)</span>
-            <span class="bg-primary text-white px-3 py-1 rounded-2 small fw-semibold">Obturado (Clic 2)</span>
+          <div>
+            <h5 class="fw-bold text-dark mb-0">Odontograma Clínico Activo</h5>
+            <p class="text-secondary small mb-0 mt-0.5">Elija el modo de inserción antes de clicar en el gráfico</p>
+          </div>
+          
+          <div class="btn-group shadow-sm p-1 bg-light rounded-3">
+            <button type="button" 
+                    class="btn btn-sm rounded-2 px-3 fw-bold py-2 transition-all d-flex align-items-center gap-2"
+                    [ngClass]="modoBotonActivo === 'ENCONTRADO' ? 'btn-primary text-white' : 'btn-light text-secondary'"
+                    (click)="setModoBoton('ENCONTRADO')">
+              <i class="bi bi-search-heart"></i> Encontrado (Azul)
+            </button>
+            <button type="button" 
+                    class="btn btn-sm rounded-2 px-3 fw-bold py-2 transition-all d-flex align-items-center gap-2"
+                    [ngClass]="modoBotonActivo === 'NO ATENDIDO' ? 'btn-danger text-white' : 'btn-light text-secondary'"
+                    (click)="setModoBoton('NO ATENDIDO')">
+              <i class="bi bi-exclamation-triangle"></i> No Atendido (Rojo)
+            </button>
           </div>
         </div>
 
         <div class="odontograma-grafico">
           
-          <!-- Fila Superior -->
           <div class="d-flex justify-content-center gap-1 mb-3">
             <div *ngFor="let diente of cuadrante1" class="diente-box">
-              <span class="tooth-num top">{{ diente.numero }}</span>
+              <span class="tooth-num top" (click)="marcarDienteOdontograma(diente.numero, 'General')" title="Pintar pieza completa">{{ diente.numero }}</span>
               <svg viewBox="0 0 40 40" class="tooth-svg">
                 <polygon points="0,0 40,0 30,10 10,10" class="zone" [ngClass]="diente.top" (click)="cambiarEstadoZona(diente, 'top')"></polygon>
                 <polygon points="40,0 40,40 30,30 30,10" class="zone" [ngClass]="diente.right" (click)="cambiarEstadoZona(diente, 'right')"></polygon>
@@ -120,7 +154,7 @@
             <div class="mid-line mx-2 mx-md-3"></div>
 
             <div *ngFor="let diente of cuadrante2" class="diente-box">
-              <span class="tooth-num top">{{ diente.numero }}</span>
+              <span class="tooth-num top" (click)="marcarDienteOdontograma(diente.numero, 'General')" title="Pintar pieza completa">{{ diente.numero }}</span>
               <svg viewBox="0 0 40 40" class="tooth-svg">
                 <polygon points="0,0 40,0 30,10 10,10" class="zone" [ngClass]="diente.top" (click)="cambiarEstadoZona(diente, 'top')"></polygon>
                 <polygon points="40,0 40,40 30,30 30,10" class="zone" [ngClass]="diente.right" (click)="cambiarEstadoZona(diente, 'right')"></polygon>
@@ -131,7 +165,6 @@
             </div>
           </div>
 
-          <!-- Fila Inferior -->
           <div class="d-flex justify-content-center gap-1 mt-5 pt-2">
             <div *ngFor="let diente of cuadrante4" class="diente-box">
               <svg viewBox="0 0 40 40" class="tooth-svg">
@@ -141,7 +174,7 @@
                 <polygon points="0,0 0,40 10,30 10,10" class="zone" [ngClass]="diente.left" (click)="cambiarEstadoZona(diente, 'left')"></polygon>
                 <rect x="10" y="10" width="20" height="20" class="zone" [ngClass]="diente.center" (click)="cambiarEstadoZona(diente, 'center')"></rect>
               </svg>
-              <span class="tooth-num bottom">{{ diente.numero }}</span>
+              <span class="tooth-num bottom" (click)="marcarDienteOdontograma(diente.numero, 'General')" title="Pintar pieza completa">{{ diente.numero }}</span>
             </div>
             
             <div class="mid-line mx-2 mx-md-3"></div>
@@ -154,13 +187,56 @@
                 <polygon points="0,0 0,40 10,30 10,10" class="zone" [ngClass]="diente.left" (click)="cambiarEstadoZona(diente, 'left')"></polygon>
                 <rect x="10" y="10" width="20" height="20" class="zone" [ngClass]="diente.center" (click)="cambiarEstadoZona(diente, 'center')"></rect>
               </svg>
-              <span class="tooth-num bottom">{{ diente.numero }}</span>
+              <span class="tooth-num bottom" (click)="marcarDienteOdontograma(diente.numero, 'General')" title="Pintar pieza completa">{{ diente.numero }}</span>
             </div>
           </div>
 
         </div>
 
-        <!-- Botones de Acción -->
+        <div class="card border-0 bg-light rounded-4 p-4 mt-5 shadow-sm">
+          <div class="border-bottom pb-2 mb-3 d-flex align-items-center justify-content-between">
+            <div>
+              <h5 class="fw-bold text-navy mb-0">Plan de Tratamiento propuesto</h5>
+              <p class="text-secondary small mb-0">Procedimientos vinculados mediante el odontograma activo</p>
+            </div>
+            <span class="badge bg-primary px-3 py-2 rounded-pill font-monospace" *ngIf="planTratamientoLista.length > 0">
+              {{ planTratamientoLista.length }} ítems
+            </span>
+          </div>
+
+          <div class="overflow-y-auto pe-1" style="max-height: 250px; min-height: 100px;">
+            
+            <div *ngIf="planTratamientoLista.length === 0" class="text-center py-4 text-muted">
+              <i class="bi bi-shield-check opacity-50 fs-4 d-block mb-1"></i>
+              <p class="small mb-0">Haga clic en el número o caras de los dientes para mapear procedimientos.</p>
+            </div>
+
+            <div class="d-flex flex-column gap-2" *ngIf="planTratamientoLista.length > 0">
+              <div *ngFor="let item of planTratamientoLista" class="p-2.5 rounded-3 border bg-white d-flex align-items-center justify-content-between font-monospace" style="font-size: 13px;">
+                
+                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                  <span class="badge bg-dark rounded-2 px-2 py-1">Pieza: {{ item.dienteNumero }}</span>
+                  <span class="badge bg-light border text-muted px-1.5 rounded" style="font-size: 11px;">{{ item.cara }}</span>
+                  <span class="text-dark fw-bold text-truncate">{{ item.tratamientoNombre }}</span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                  <span class="badge px-2 py-1 rounded-pill" 
+                        style="font-size: 10px; font-weight: 600;"
+                        [ngClass]="item.tipoBoton === 'NO ATENDIDO' ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'">
+                    {{ item.tipoBoton }}
+                  </span>
+                  <button type="button" class="btn btn-link p-0 text-muted hover-danger border-0 bg-transparent shadow-none" (click)="eliminarTratamientoAsignado(item.idUnique)">
+                    <i class="bi bi-x-circle-fill fs-5"></i>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
           <button type="button" class="btn btn-outline-secondary px-4 rounded-3 fw-medium">Cancelar</button>
           <button type="button" class="btn btn-primary px-4 rounded-3 fw-medium" (click)="guardarConsulta()">Guardar Consulta</button>

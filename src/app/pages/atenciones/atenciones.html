@@ -5,7 +5,6 @@
   </div>
 </div>
 
-<!-- Tabla General de Atenciones -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
@@ -13,7 +12,7 @@
         <tr>
           <th scope="col" class="ps-4 py-3 text-secondary fw-semibold">Fecha</th>
           <th scope="col" class="py-3 text-secondary fw-semibold">Paciente</th>
-          <th scope="col" class="py-3 text-secondary fw-semibold">Motivo de Consulta</th>
+          <th scope="col" class="py-3 text-secondary fw-semibold">Procedimientos Registrados</th>
           <th scope="col" class="py-3 text-secondary fw-semibold">Costo</th>
           <th scope="col" class="text-end pe-4 py-3 text-secondary fw-semibold">Acciones</th>
         </tr>
@@ -32,16 +31,31 @@
               {{ consulta.fechaRegistro | date:'dd/MM/yyyy hh:mm a' }}
             </td>
             <td class="py-3 fw-bold text-dark">{{ consulta.pacienteNombre }}</td>
-            <td class="py-3 text-truncate-custom">{{ consulta.motivo }}</td>
+            <td class="py-3 font-monospace" style="font-size: 13px;">
+              <span *ngIf="consulta.planTratamientoLista && consulta.planTratamientoLista.length > 0" class="text-navy fw-semibold">
+                <i class="bi bi-layers-half me-1"></i> {{ consulta.planTratamientoLista.length }} tratamientos asignados
+              </span>
+              <span *ngIf="!consulta.planTratamientoLista || consulta.planTratamientoLista.length === 0" class="text-muted opacity-75">
+                <i class="bi bi-clock-history me-1"></i> Registro clínico de odontograma tradicional
+              </span>
+            </td>
             <td class="py-3">
               <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">
                 S/ {{ consulta.costoAtencion | number:'1.2-2' }}
               </span>
             </td>
             <td class="text-end pe-4 py-3">
-              <button class="btn btn-sm btn-light text-primary fw-semibold px-3 rounded-3" (click)="verDetalleConsulta(consulta)">
-                <i class="bi bi-eye-fill me-1"></i> Ver Ficha
-              </button>
+              <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-sm btn-light text-primary fw-semibold px-3 rounded-3" (click)="verDetalleConsulta(consulta)">
+                  <i class="bi bi-eye-fill me-1"></i> Ver Ficha
+                </button>
+                <button class="btn btn-sm btn-light text-danger fw-semibold px-2 rounded-3" 
+                        *ngIf="consulta.id"
+                        (click)="eliminarConsultaHistorial(consulta)"
+                        title="Eliminar registro médico">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </div>
             </td>
           </tr>
 
@@ -57,7 +71,6 @@
   </div>
 </div>
 
-<!-- MODAL DE FICHA CLÍNICA DETALLADA -->
 <div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalDetalle}" [style.display]="mostrarModalDetalle ? 'block' : 'none'">
   <div class="modal-dialog modal-dialog-centered modal-xl"> 
     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -68,9 +81,9 @@
       </div>
 
       <div class="modal-body p-4 bg-light" *ngIf="consultaSeleccionada">
+        
         <div class="row g-4">
           
-          <!-- COLUMNA 1: DATOS DE ATENCIÓN -->
           <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
               <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Datos de Atención</h6>
@@ -96,41 +109,40 @@
             </div>
           </div>
 
-          <!-- COLUMNA 2: HALLAZGOS (ODONTOGRAMA) -->
           <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
-              <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Hallazgos (Odontograma)</h6>
-              
-              <div *ngIf="hallazgosDeteccion.length === 0" class="text-muted text-center py-4 small">
-                <i class="bi bi-shield-check text-success fs-3 d-block mb-1"></i>
-                Dentadura completa sin anomalías registradas.
-              </div>
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white border-start border-4 border-warning">
+              <h6 class="text-uppercase text-warning fw-bold small border-bottom pb-2 mb-3 tracking-wider">Observaciones Clínicas</h6>
+              <div class="overflow-y-auto pe-1" style="max-height: 250px;">
+                
+                <div *ngIf="consultaSeleccionada.tratamientosSesionResumen && consultaSeleccionada.tratamientosSesionResumen.length > 0" class="d-flex flex-column gap-2">
+                  <span class="d-block text-muted small fw-bold mb-1 text-uppercase" style="font-size: 11px;">
+                    <i class="bi bi-journal-text me-1 text-warning"></i> Tratamientos en Sesión:
+                  </span>
+                  <div *ngFor="let nombreTrat of consultaSeleccionada.tratamientosSesionResumen" 
+                       class="p-2.5 rounded-3 bg-light border border-warning-subtle text-dark fw-bold font-monospace shadow-sm animate-fade-in"
+                       style="font-size: 12px; letter-spacing: -0.2px;">
+                    <i class="bi bi-patch-check-fill text-warning me-2"></i> {{ nombreTrat }}
+                  </div>
+                </div>
 
-              <ul class="list-unstyled d-flex flex-column gap-2 mb-0 overflow-auto" style="max-height: 250px;" *ngIf="hallazgosDeteccion.length > 0">
-                <li *ngFor="let h of hallazgosDeteccion" class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3">
-                  <span class="text-secondary fw-medium">
-                    <i class="bi bi-circle-fill text-black-50 small me-2" style="font-size: 0.5rem;"></i>
-                    Diente <strong>{{ h.numero }}</strong>: {{ h.cara }}
-                  </span>
-                  <span class="badge rounded-pill px-2 py-1 small fw-bold {{ h.badgeClase }}">
-                    {{ h.estado }}
-                  </span>
-                </li>
-              </ul>
+                <div *ngIf="!consultaSeleccionada.tratamientosSesionResumen || consultaSeleccionada.tratamientosSesionResumen.length === 0">
+                  <p class="text-dark mb-0 small fw-medium bg-light p-2.5 rounded-3 border" style="line-height: 1.4; min-height: 100px; white-space: pre-wrap;">
+                    {{ consultaSeleccionada.planTratamiento || 'Sin observaciones detalladas escritas en esta sesión.' }}
+                  </p>
+                </div>
+
+              </div>
             </div>
           </div>
 
-          <!-- COLUMNA 3: MATERIALES UTILIZADOS (COMPLETAMENTE DINÁMICA) -->
           <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
               <h6 class="text-uppercase text-secondary fw-bold small border-bottom pb-2 mb-3 tracking-wider">Materiales Utilizados</h6>
               
-              <!-- Alerta visual si no hay insumos cargados -->
-              <div *ngIf="!consultaSeleccionada.insumosUtilizados || consultaSeleccionada.insumosUtilizados.length === 0" class="text-muted text-center py-5 small italic-style">
+              <div *ngIf="!consultaSeleccionada.insumosUtilizados || consultaSeleccionada.insumosUtilizados.length === 0" class="text-muted text-center py-5 small" style="font-style: italic;">
                 No se consumieron insumos en esta sesión.
               </div>
 
-              <!-- Listado dinámico de insumos recuperados desde Firestore -->
               <ul class="list-unstyled d-flex flex-column gap-2 mb-0 overflow-auto" style="max-height: 250px;" *ngIf="consultaSeleccionada.insumosUtilizados && consultaSeleccionada.insumosUtilizados.length > 0">
                 <li *ngFor="let mat of consultaSeleccionada.insumosUtilizados" class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3">
                   <span class="text-secondary fw-medium text-truncate" style="max-width: 180px;">
@@ -146,14 +158,50 @@
 
         </div>
 
-        <!-- FILA INFERIOR: OBSERVACIONES Y TRATAMIENTO -->
         <div class="row mt-4">
           <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4 p-4 border-start border-4 border-warning bg-white">
-              <h6 class="text-uppercase text-warning fw-bold small tracking-wider mb-2">Observaciones / Plan de Tratamiento</h6>
-              <p class="text-dark mb-0 fw-medium bg-light p-3 rounded-3 border">
-                {{ consultaSeleccionada.planTratamiento || 'Sin observaciones detalladas.' }}
-              </p>
+            <div class="card border-0 shadow-sm rounded-4 p-4 border-start border-4 border-primary bg-white">
+              
+              <div class="border-bottom pb-2 mb-3 d-flex align-items-center justify-content-between">
+                <div>
+                  <h6 class="text-uppercase text-primary fw-bold small tracking-wider mb-0">Hallazgos y Plan de Tratamiento (Odontograma)</h6>
+                  <p class="text-muted small mb-0 font-monospace" style="font-size: 11px;">Desglose de procedimientos vinculados gráficamente en la sesión</p>
+                </div>
+                <span class="badge bg-primary px-3 py-2 rounded-pill font-monospace" *ngIf="hallazgosDeteccion.length > 0">
+                  {{ hallazgosDeteccion.length }} procedimientos mapeados
+                </span>
+              </div>
+
+              <div class="overflow-y-auto pe-1" style="max-height: 300px; min-height: 120px;">
+                
+                <div *ngIf="hallazgosDeteccion.length === 0" class="text-center py-4 text-muted font-monospace" style="font-size: 13px;">
+                  <i class="bi bi-shield-check opacity-50 fs-4 d-block mb-1 text-success"></i>
+                  Piezas dentales evaluadas en estado sano (Sin tratamientos registrados).
+                </div>
+
+                <div class="d-flex flex-column gap-2" *ngIf="hallazgosDeteccion.length > 0">
+                  <div *ngFor="let h of hallazgosDeteccion" class="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between font-monospace animate-fade-in" style="font-size: 13px;">
+                    
+                    <div class="d-flex align-items-center gap-3 overflow-hidden">
+                      <span class="badge bg-dark rounded-2 px-2.5 py-1.5 fs-6">Pieza: {{ h.numero }}</span>
+                      <span class="badge bg-white border text-muted px-2 py-1.5 rounded-2">Cara: {{ h.cara }}</span>
+                      <span class="text-dark fw-bold text-truncate" style="font-size: 14px;">
+                        <i class="bi bi-arrow-right-short text-primary"></i> {{ h.estado }}
+                      </span>
+                    </div>
+
+                    <div class="d-flex align-items-center ps-2">
+                      <span class="badge px-3 py-2 rounded-pill fw-bold shadow-sm" style="font-size: 11px;" [ngClass]="h.badgeClase">
+                        <i class="bi" [ngClass]="h.badgeClase.includes('danger') ? 'bi-exclamation-triangle-fill' : 'bi-shield-fill-check'"></i> 
+                        Acción Clínica Registrada
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+
             </div>
           </div>
         </div>

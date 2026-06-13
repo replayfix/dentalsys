@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, addDoc, onSnapshot } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, onSnapshot, doc, deleteDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
 // Interfaz interna para tipar los insumos consumidos dentro de la consulta
@@ -9,6 +9,15 @@ export interface InsumoUsado {
   cantidad: number;
 }
 
+// Interfaz para tipar los tratamientos asignados desde el buscador interactivo
+export interface TratamientoAsignado {
+  idUnique: string;
+  dienteNumero: number;
+  cara: string;
+  tratamientoNombre: string;
+  tipoBoton: 'ENCONTRADO' | 'NO ATENDIDO';
+}
+
 export interface Consulta {
   id?: string;
   pacienteId: string;
@@ -16,10 +25,12 @@ export interface Consulta {
   presionArterial: string;
   frecuenciaCardiaca: string;
   costoAtencion: number;
-  motivo: string;
-  planTratamiento: string;
+  motivo?: string;             // Opcional por si no se envía en el nuevo flujo
+  planTratamiento?: string;    // Mantenido por retrocompatibilidad con registros antiguos
+  planTratamientoLista?: TratamientoAsignado[]; // Estructura detallada pieza por pieza
+  tratamientosSesionResumen?: string[]; // Nombres de los tratamientos cargados en la sesión
   fechaRegistro: number;
-  insumosUtilizados?: InsumoUsado[]; // 👈 ¡ESTA ES LA LÍNEA CRÍTICA QUE FALTABA!
+  insumosUtilizados?: InsumoUsado[];
   odontograma: {
     cuadrante1: any[];
     cuadrante2: any[];
@@ -38,6 +49,12 @@ export class ConsultasService {
   // Método para guardar la consulta
   addConsulta(consulta: Consulta) {
     return addDoc(this.consultasRef, consulta);
+  }
+
+  // 👈 MÉTODO OPERATIVO DE BORRADO DE DOCUMENTO EN FIRESTORE
+  deleteConsulta(idConsulta: string) {
+    const documentoEspecificoRef = doc(this.firestore, `consultas/${idConsulta}`);
+    return deleteDoc(documentoEspecificoRef);
   }
 
   // Lector en tiempo real ordenado cronológicamente
