@@ -31,6 +31,10 @@ export class AtencionesComponent implements OnInit {
   consultaSeleccionada: Consulta | null = null;
   hallazgosDeteccion: HallazgoDental[] = [];
 
+  // 👈 VARIABLES DE CONTROL PARA EL MODAL DE ELIMINACIÓN ESTILIZADO VINCULADO AL HTML
+  mostrarModalEliminar: boolean = false;
+  consultaAEliminar: any = null;
+
   ngOnInit() {
     // Escuchamos el flujo de atenciones en tiempo real
     this.consultasService.consultas$.subscribe({
@@ -69,14 +73,24 @@ export class AtencionesComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // MÉTODO OPERATIVO DE BORRADO LOGÍSTICO Y TRANSACCIONAL COMPLETO
-  eliminarConsultaHistorial(consulta: any) {
-    if (!consulta.id) return;
+  // 👈 CONTROLES INTERACTIVOS DEL NUEVO MODAL ESTILIZADO
+  abrirModalEliminar(consulta: any) {
+    this.consultaAEliminar = consulta;
+    this.mostrarModalEliminar = true;
+    this.cdr.detectChanges();
+  }
 
-    const confirmacion = confirm(`¿Está seguro de que desea eliminar permanentemente este registro clínico de atención?\n\nPaciente: ${consulta.pacienteNombre}\nCosto: S/ ${consulta.costoAtencion}\n\n*Nota: Los insumos utilizados serán devueltos automáticamente al almacén.`);
-    
-    if (!confirmacion) return;
+  cerrarModalEliminar() {
+    this.mostrarModalEliminar = false;
+    this.consultaAEliminar = null;
+    this.cdr.detectChanges();
+  }
 
+  // 👈 PROCESO TRANSACCIONAL SEGURO ACTIVADO DESDE EL MODAL ESTILIZADO
+  confirmarEliminacion() {
+    if (!this.consultaAEliminar?.id) return;
+
+    const consulta = this.consultaAEliminar;
     console.log('🔄 Iniciando proceso transaccional de eliminación de atención...', consulta.id);
 
     // 1. Procesar devolución de insumos utilizados si es que existen
@@ -102,7 +116,8 @@ export class AtencionesComponent implements OnInit {
         return this.consultasService.deleteConsulta(consulta.id); // Llamada al método del servicio
       })
       .then(() => {
-        alert('¡Registro clínico eliminado e inventario restaurado con éxito!');
+        this.cerrarModalEliminar();
+        this.cdr.detectChanges();
       })
       .catch(error => {
         console.error('❌ Error al revertir la consulta:', error);

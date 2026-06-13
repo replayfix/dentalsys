@@ -51,7 +51,7 @@
                 </button>
                 <button class="btn btn-sm btn-light text-danger fw-semibold px-2 rounded-3" 
                         *ngIf="consulta.id"
-                        (click)="eliminarConsultaHistorial(consulta)"
+                        (click)="abrirModalEliminar(consulta)"
                         title="Eliminar registro médico">
                   <i class="bi bi-trash-fill"></i>
                 </button>
@@ -127,7 +127,7 @@
 
                 <div *ngIf="!consultaSeleccionada.tratamientosSesionResumen || consultaSeleccionada.tratamientosSesionResumen.length === 0">
                   <p class="text-dark mb-0 small fw-medium bg-light p-2.5 rounded-3 border" style="line-height: 1.4; min-height: 100px; white-space: pre-wrap;">
-                    {{ consultaSeleccionada.planTratamiento || 'Sin observaciones detalladas escritas en esta sesión.' }}
+                    {{ consultaSeleccionada.planTratamiento || 'Sin observaciones detalladas escritas in esta sesión.' }}
                   </p>
                 </div>
 
@@ -216,4 +216,41 @@
   </div>
 </div>
 
-<div *ngIf="mostrarModalDetalle" class="modal-backdrop fade show"></div>
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalEliminar}" [style.display]="mostrarModalEliminar ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header bg-danger text-white border-bottom-0 p-4">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 m-0">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          Confirmar Eliminación
+        </h5>
+        <button type="button" class="btn-close btn-close-white shadow-none" (click)="cerrarModalEliminar()"></button>
+      </div>
+      <div class="modal-body p-4 bg-light">
+        <p class="mb-3 text-secondary fw-medium">¿Está seguro de que desea eliminar permanentemente este registro clínico de atención?</p>
+        
+        <div class="bg-white p-3 rounded-3 border shadow-sm mb-3" *ngIf="consultaAEliminar">
+          <div class="small text-muted fw-bold text-uppercase tracking-wider mb-2" style="font-size: 10px;">Detalles del Registro:</div>
+          <div class="fw-bold text-dark fs-6 mb-1">Paciente: {{ consultaAEliminar.pacienteNombre }}</div>
+          <div class="text-primary font-monospace fw-bold" style="font-size: 14px;">Costo: S/ {{ consultaAEliminar.costoAtencion | number:'1.2-2' }}</div>
+        </div>
+
+        <div class="alert alert-warning border-0 p-3 rounded-3 d-flex align-items-start gap-2.5 mb-0 shadow-sm">
+          <i class="bi bi-info-circle-fill fs-5 text-warning mt-0.5"></i>
+          <span class="small fw-semibold text-warning-emphasis" style="line-height: 1.4;">
+            Los insumos utilizados en esta cita serán devueltos de forma automática al inventario de almacén.
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer bg-white border-top-0 p-3">
+        <button type="button" class="btn btn-light px-4 rounded-3 fw-semibold text-secondary" (click)="cerrarModalEliminar()">Cancelar</button>
+        <button type="button" class="btn btn-danger px-4 rounded-3 fw-semibold d-flex align-items-center gap-2" (click)="confirmarEliminacion()">
+          <i class="bi bi-trash3-fill"></i>
+          Eliminar Registro
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarModalDetalle || mostrarModalEliminar" class="modal-backdrop fade show"></div>
