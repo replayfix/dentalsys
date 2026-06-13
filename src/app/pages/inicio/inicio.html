@@ -7,6 +7,7 @@
 
 <div *ngIf="!cargando">
   
+  <!-- FILA 1: TARJETAS DE MÉTRICAS SUPERIORES -->
   <div class="row g-4 mb-5">
     
     <div class="col-md-4">
@@ -62,6 +63,7 @@
 
   </div>
 
+  <!-- FILA 2: RENDIMIENTO FINANCIERO + PRÓXIMOS PACIENTES (INTERACTIVO) -->
   <div class="row g-4 mb-5">
     
     <div class="col-xl-8 col-lg-7">
@@ -110,9 +112,15 @@
             <p class="text-muted small mb-0">No se registran citas agendadas para la fecha de hoy.</p>
           </div>
 
+          <!-- ACTUALIZADO: Lista de Citas vinculada al Expediente del paciente -->
           <div *ngIf="!cargandoCitas && citasHoy.length > 0" class="d-flex flex-column gap-2">
             <div *ngFor="let cita of citasHoy" 
-                 class="p-3 rounded-3 border d-flex align-items-center justify-content-between animate-fade-in"
+                 [routerLink]="['/expediente']" 
+                 [queryParams]="{ id: cita.pacienteId }"
+                 class="p-3 rounded-3 border d-flex align-items-center justify-content-between animate-fade-in user-select-none"
+                 style="cursor: pointer; transition: all 0.2s ease-in-out;"
+                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)';"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
                  [ngClass]="{
                    'bg-warning-subtle border-warning-subtle text-warning-emphasis': cita.estado === 'Pendiente',
                    'bg-primary-subtle border-primary-subtle text-primary-emphasis': cita.estado === 'Confirmada',
@@ -133,13 +141,14 @@
                 </div>
               </div>
 
-              <div class="fs-5 ps-2">
+              <div class="d-flex align-items-center gap-2 fs-5 ps-2">
                 <i class="bi" [ngClass]="{
                   'bi-clock-history text-warning': cita.estado === 'Pendiente',
                   'bi-calendar-check-fill text-primary': cita.estado === 'Confirmada',
                   'bi-check-circle-fill text-success': cita.estado === 'Atendida',
                   'bi-x-circle-fill text-danger': cita.estado === 'No Asistió'
                 }"></i>
+                <i class="bi bi-chevron-right text-muted opacity-50 fs-6 ms-1"></i>
               </div>
 
             </div>

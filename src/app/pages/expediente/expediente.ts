@@ -2,6 +2,7 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ConsultasService, Consulta } from '../../core/services/consultas';
+import { PacientesService } from '../../core/services/pacientes'; // 👈 Inyectamos el servicio de pacientes para recuperar nombres
 
 export interface HallazgoDental {
   numero: number;
@@ -20,10 +21,11 @@ export interface HallazgoDental {
 export class ExpedienteComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private consultasService = inject(ConsultasService);
+  private pacientesService = inject(PacientesService); // 👈 Referencia del servicio de pacientes
   private cdr = inject(ChangeDetectorRef);
 
   pacienteId: string = '';
-  pacienteNombre: string = '';
+  pacienteNombre: string = 'Paciente';
   consultasPaciente: Consulta[] = [];
   cargando: boolean = true;
 
@@ -33,13 +35,40 @@ export class ExpedienteComponent implements OnInit {
   hallazgosDeteccion: HallazgoDental[] = [];
 
   ngOnInit() {
-    // 1. Capturamos los datos del paciente desde la URL
+    // 1. 👈 Capturamos y escuchamos de forma reactiva los parámetros de la URL (?id=xxxx)
     this.route.queryParams.subscribe(params => {
       this.pacienteId = params['id'] || '';
-      this.pacienteNombre = params['nombre'] || 'Paciente';
-
+      
+      // Intentamos recuperar el nombre si viene directo en la URL
+      const nombreUrl = params['nombre'];
+      
       if (this.pacienteId) {
+        console.log('Cargar automáticamente el expediente del paciente con ID:', this.pacienteId);
+        
+        if (nombreUrl) {
+          this.pacienteNombre = nombreUrl;
+        } else {
+          // 👈 Si no viene el nombre (desde el Dashboard), lo recuperamos cruzando datos en tiempo real
+          this.recuperarNombrePaciente();
+        }
+
         this.cargarHistorialFiltrado();
+      } else {
+        this.cargando = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // 👈 NUEVO MÉTODO INTERNO DE QA VISUAL
+  private recuperarNombrePaciente() {
+    this.pacientesService.pacientes$.subscribe({
+      next: (todosLosPacientes) => {
+        const pacienteEncontrado = todosLosPacientes.find(p => p.id === this.pacienteId);
+        if (pacienteEncontrado) {
+          this.pacienteNombre = pacienteEncontrado.nombre;
+          this.cdr.detectChanges();
+        }
       }
     });
   }
@@ -51,6 +80,12 @@ export class ExpedienteComponent implements OnInit {
         this.consultasPaciente = todasLasConsultas.filter(
           c => c.pacienteId === this.pacienteId
         );
+        
+        // Control de rescate secundario para el nombre del paciente si los servicios se cruzan
+        if (this.pacienteNombre === 'Paciente' && this.consultasPaciente.length > 0) {
+          this.pacienteNombre = this.consultasPaciente[0].pacienteNombre || 'Paciente';
+        }
+
         this.cargando = false;
         this.cdr.detectChanges();
       },
