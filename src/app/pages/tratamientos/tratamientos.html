@@ -1,0 +1,134 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold text-navy mb-0">Catálogo de Tratamientos</h2>
+    <p class="text-secondary mb-0">Administración de procedimientos médicos y servicios clínicos disponibles</p>
+  </div>
+
+  <button class="btn btn-primary rounded-3 fw-semibold px-4 shadow-sm" (click)="abrirModal()">
+    <i class="bi bi-plus-lg me-2"></i>Nuevo Procedimiento
+  </button>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+  <div class="input-group">
+    <span class="input-group-text bg-light border-end-0 text-secondary px-3">
+      <i class="bi bi-search"></i>
+    </span>
+    <input type="text" 
+           class="form-control bg-light border-start-0 ps-1 py-2.5 rounded-end-3" 
+           placeholder="Buscar tratamiento por nombre o categoría..."
+           (input)="onBuscar($event)">
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="py-3 ps-4 text-secondary fw-semibold text-uppercase tracking-wider" style="width: 50%;">Nombre del Procedimiento</th>
+          <th class="py-3 text-secondary fw-semibold text-uppercase tracking-wider" style="width: 35%;">Categoría</th>
+          <th class="py-3 pe-4 text-end text-secondary fw-semibold text-uppercase tracking-wider" style="width: 15%;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="cargando">
+          <td colspan="3" class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm text-primary me-2"></div> Sincronizando catálogo de tratamientos...
+          </td>
+        </tr>
+
+        <tr *ngIf="!cargando && tratamientosFiltrados.length === 0">
+          <td colspan="3" class="text-center py-5 text-muted">
+            <i class="bi bi-folder-x display-6 d-block mb-2 text-secondary opacity-50"></i>
+            No se encontraron tratamientos registrados.
+          </td>
+        </tr>
+
+        <tr *ngFor="let t of tratamientosFiltrados">
+          <td class="ps-4 fw-bold text-navy">{{ t.nombre }}</td>
+          <td>
+            <span class="badge rounded-pill px-3 py-2 fw-semibold" 
+                  [ngClass]="{
+                    'bg-info-subtle text-info-emphasis': t.categoria === 'Estética',
+                    'bg-danger-subtle text-danger-emphasis': t.categoria === 'Cirugía',
+                    'bg-success-subtle text-success-emphasis': t.categoria === 'Preventivo',
+                    'bg-secondary-subtle text-secondary-emphasis': t.categoria === 'General'
+                  }">
+              {{ t.categoria }}
+            </span>
+          </td>
+          <td class="pe-4 text-end">
+            <button class="btn btn-sm btn-outline-danger border-0 rounded-3" (click)="abrirModalEliminar(t)" title="Eliminar del catálogo">
+              <i class="bi bi-trash3-fill"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModal}" [style.display]="mostrarModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-light border-bottom-0 p-4">
+        <h5 class="modal-title fw-bold text-navy m-0">
+          <i class="bi bi-journal-medical text-primary me-2"></i>Registrar Procedimiento
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+      </div>
+      <form [formGroup]="tratamientoForm" (ngSubmit)="guardarTratamiento()">
+        <div class="modal-body p-4 bg-white">
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-secondary small text-uppercase tracking-wider">Nombre del Tratamiento</label>
+            <input type="text" 
+                   class="form-control rounded-3 shadow-sm py-2" 
+                   formControlName="nombre"
+                   placeholder="Ej: EXODONCIA SIMPLE, ENDODONCIA..."
+                   [ngClass]="{'is-invalid': tratamientoForm.get('nombre')?.touched && tratamientoForm.get('nombre')?.invalid}">
+            <div class="invalid-feedback">
+              Por favor, ingrese un nombre válido (mínimo 3 caracteres).
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label fw-semibold text-secondary small text-uppercase tracking-wider">Categoría</label>
+            <select class="form-select rounded-3 shadow-sm py-2" formControlName="categoria">
+              <option value="General">📋 General / Diagnóstico</option>
+              <option value="Preventivo">🟢 Preventivo (Limpieza, Flúor)</option>
+              <option value="Cirugía">🔴 Cirugía / Especialidad</option>
+              <option value="Estética">🔵 Estética (Blanqueamiento, Carillas)</option>
+            </select>
+          </div>
+
+        </div>
+        <div class="modal-footer border-top-0 bg-light p-3">
+          <button type="button" class="btn btn-outline-secondary rounded-3 fw-semibold px-4" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary rounded-3 fw-semibold px-4">Guardar en Catálogo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div *ngIf="mostrarModal" class="modal-backdrop fade show"></div>
+
+<div class="modal fade" tabindex="-1" [ngClass]="{'show': mostrarModalEliminar}" [style.display]="mostrarModalEliminar ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-body p-4 text-center bg-white">
+        <i class="bi bi-exclamation-triangle-fill text-danger display-4 mb-3 d-inline-block"></i>
+        <h5 class="fw-bold text-navy mb-2">¿Eliminar del Catálogo?</h5>
+        <p class="text-secondary small mb-4">
+          Estás por remover permanentemente el procedimiento <strong class="text-dark">"{{ tratamientoAEliminar?.nombre }}"</strong> del catálogo médico. Esta acción no se puede deshacer.
+        </p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="button" class="btn btn-light border rounded-3 fw-semibold px-4 w-50" (click)="cerrarModalEliminar()">Cancelar</button>
+          <button type="button" class="btn btn-danger rounded-3 fw-semibold px-4 w-50" (click)="confirmarEliminacion()">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="mostrarModalEliminar" class="modal-backdrop fade show"></div>

@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common'; // 👈 Añadido por consistencia de buenas prácticas
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive], // 👈 Integrado CommonModule
   templateUrl: './sidebar.html',
   styleUrls: ['./sidebar.scss']
 })

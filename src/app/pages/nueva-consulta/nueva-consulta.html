@@ -11,6 +11,11 @@
         <form [formGroup]="consultaForm">
           
           <div class="mb-3">
+            <label class="form-label text-secondary small fw-medium">Paciente</label>
+            <input type="text" class="form-control bg-light fw-bold text-navy" [value]="pacienteNombre" readonly>
+          </div>
+
+          <div class="mb-3 d-none">
             <label class="form-label text-secondary small fw-medium">Paciente (ID)</label>
             <input type="text" class="form-control bg-light fw-semibold text-muted" formControlName="pacienteId">
           </div>
@@ -28,7 +33,7 @@
 
           <div class="mb-4">
             <label class="form-label text-secondary small fw-medium">Costo de Atención (S/)</label>
-            <input type="number" class="form-control cost-input fw-bold fs-5 text-success" formControlName="costoAtencion">
+            <input type="number" class="form-control cost-input fw-bold fs-5 text-success shadow-sm" formControlName="costoAtencion">
           </div>
 
           <div class="mb-3 position-relative border-top pt-3">
@@ -37,19 +42,20 @@
               <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-search"></i></span>
               <input type="text" 
                      class="form-control bg-light border-0 font-medium small shadow-none" 
-                     placeholder="Escriba tratamiento (Ej: Exodoncia...)"
+                     placeholder="Buscar en el catálogo... (Ej: RESINA)"
                      [(ngModel)]="terminoBusqueda"
                      [ngModelOptions]="{standalone: true}"
                      (input)="filtrarTratamientos()"
                      (focus)="filtrarTratamientos()">
             </div>
 
-            <ul class="dropdown-menu w-100 show border-0 shadow-lg mt-1 p-2 rounded-3" 
+            <ul class="dropdown-menu w-100 show border-0 shadow-lg mt-1 p-2 rounded-3 animate-fade-in" 
                 *ngIf="mostrarDropdown" 
                 style="max-height: 200px; overflow-y: auto; z-index: 1050; display: block; position: absolute;">
               <li *ngFor="let trat of tratamientosFiltrados">
-                <button type="button" class="dropdown-item rounded-2 py-2 small fw-medium text-dark" (click)="seleccionarTratamiento(trat)">
-                  <i class="bi bi-plus-circle text-primary me-2"></i>{{ trat.nombre }}
+                <button type="button" class="dropdown-item rounded-2 py-2 small fw-medium text-dark d-flex align-items-center justify-content-between" (click)="seleccionarTratamiento(trat)">
+                  <span><i class="bi bi-plus-circle text-primary me-2"></i>{{ trat.nombre }}</span>
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis small opacity-75">{{ trat.categoria }}</span>
                 </button>
               </li>
             </ul>
@@ -60,14 +66,14 @@
             <div class="d-flex flex-column gap-1.5 bg-light p-2 rounded-3 border" style="max-height: 120px; overflow-y: auto;">
               <div *ngFor="let t of listaTratamientosSeleccionados" 
                    (click)="setTratamientoActivo(t)"
-                   class="p-2 rounded-2 border bg-white d-flex align-items-center justify-content-between position-relative context-item"
-                   [ngClass]="{'border-primary bg-primary-subtle bg-opacity-25': tratamientoActivoParaAplicar?.id === t.id}"
+                   class="p-2 rounded-2 border bg-white d-flex align-items-center justify-content-between position-relative context-item animate-fade-in"
+                   [ngClass]="{'border-primary bg-primary-subtle bg-opacity-25': treatmentActivoParaAplicar?.id === t.id}"
                    style="cursor: pointer; font-size: 12px;">
                 <span class="fw-bold text-dark text-truncate style-text" style="max-width: 190px;">
-                  <i class="bi" [ngClass]="tratamientoActivoParaAplicar?.id === t.id ? 'bi-check-circle-fill text-primary' : 'bi-circle text-muted'"></i> 
+                  <i class="bi" [ngClass]="treatmentActivoParaAplicar?.id === t.id ? 'bi-check-circle-fill text-primary' : 'bi-circle text-muted'"></i> 
                   {{ t.nombre }}
                 </span>
-                <button type="button" class="btn btn-link p-0 text-danger border-0 text-decoration-none" (click)="quitarTratamientoDeLista(t.id, $event)">
+                <button type="button" class="btn btn-link p-0 text-danger border-0 text-decoration-none" (click)="quitarTratamientoDeLista(t.id || '', $event)">
                   <i class="bi bi-x-lg fw-bold" style="font-size: 11px;"></i>
                 </button>
               </div>
@@ -95,7 +101,7 @@
               </div>
             </div>
 
-            <div class="bg-light rounded-3 p-2 border" *ngIf="insumosUsados.length > 0">
+            <div class="bg-light rounded-3 p-2 border animate-fade-in" *ngIf="insumosUsados.length > 0">
               <div *ngFor="let item of insumosUsados; let i = index" class="d-flex justify-content-between align-items-center bg-white border rounded-2 p-2 mb-1 shadow-sm">
                 <span class="small fw-medium text-dark text-truncate" style="max-width: 140px;">{{ item.nombre }}</span>
                 <div class="d-flex align-items-center gap-2">
@@ -206,13 +212,13 @@
 
           <div class="overflow-y-auto pe-1" style="max-height: 250px; min-height: 100px;">
             
-            <div *ngIf="planTratamientoLista.length === 0" class="text-center py-4 text-muted">
-              <i class="bi bi-shield-check opacity-50 fs-4 d-block mb-1"></i>
+            <div class="text-center py-4 text-muted" *ngIf="planTratamientoLista.length === 0">
+              <i class="bi bi-shield-check opacity-50 fs-4 d-block mb-1 text-success"></i>
               <p class="small mb-0">Haga clic en el número o caras de los dientes para mapear procedimientos.</p>
             </div>
 
             <div class="d-flex flex-column gap-2" *ngIf="planTratamientoLista.length > 0">
-              <div *ngFor="let item of planTratamientoLista" class="p-2.5 rounded-3 border bg-white d-flex align-items-center justify-content-between font-monospace" style="font-size: 13px;">
+              <div *ngFor="let item of planTratamientoLista" class="p-2.5 rounded-3 border bg-white d-flex align-items-center justify-content-between font-monospace animate-fade-in" style="font-size: 13px;">
                 
                 <div class="d-flex align-items-center gap-2 overflow-hidden">
                   <span class="badge bg-dark rounded-2 px-2 py-1">Pieza: {{ item.dienteNumero }}</span>
@@ -238,8 +244,8 @@
         </div>
 
         <div class="d-flex justify-content-end gap-3 mt-5 pt-4 border-top">
-          <button type="button" class="btn btn-outline-secondary px-4 rounded-3 fw-medium">Cancelar</button>
-          <button type="button" class="btn btn-primary px-4 rounded-3 fw-medium" (click)="guardarConsulta()">Guardar Consulta</button>
+          <button type="button" class="btn btn-outline-secondary px-4 rounded-3 fw-semibold" routerLink="/pacientes">Cancelar</button>
+          <button type="button" class="btn btn-primary px-4 rounded-3 fw-semibold shadow-sm" (click)="guardarConsulta()">Guardar Consulta</button>
         </div>
 
       </div>

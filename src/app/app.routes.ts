@@ -6,7 +6,7 @@ import { NuevaConsultaComponent } from './pages/nueva-consulta/nueva-consulta';
 import { AtencionesComponent } from './pages/atenciones/atenciones';
 import { InventarioComponent } from './pages/inventario/inventario';
 import { ExpedienteComponent } from './pages/expediente/expediente';
-import { authGuard } from './core/guards/auth.guard'; // 👈 Importamos nuestro guardián
+import { authGuard } from './core/guards/auth.guard'; 
 
 export const routes: Routes = [
   // Ruta pública inicial
@@ -25,6 +25,13 @@ export const routes: Routes = [
   { 
     path: 'agenda', 
     loadComponent: () => import('./pages/agenda/agenda').then(m => m.AgendaComponent), 
+    canActivate: [authGuard] 
+  },
+
+  // 👈 INTEGRADO: NUEVA RUTA DEL CATÁLOGO DE TRATAMIENTOS MÉDICOS
+  { 
+    path: 'tratamientos', 
+    loadComponent: () => import('./pages/tratamientos/tratamientos').then(m => m.TratamientosComponent), 
     canActivate: [authGuard] 
   },
   
