@@ -29,7 +29,7 @@ export class AgendaComponent implements OnInit {
   diasDelMes: Date[] = [];
   nombresDias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-  // 👈 NUEVAS VARIABLES PARA LA GESTIÓN DE CITAS EXISTENTES
+  // VARIABLES PARA LA GESTIÓN DE CITAS EXISTENTES
   mostrarModalGestion: boolean = false;
   citaSeleccionada: Cita | null = null;
 
@@ -124,30 +124,41 @@ export class AgendaComponent implements OnInit {
 
   cerrarModal() { this.mostrarModal = false; }
 
+  // MÉTODO ACTUALIZADO PARA RESOLVER CAMPOS CASE-SENSITIVE EN PRODUCCIÓN
   guardarCita() {
     if (this.citaForm.valid) {
       const valores = this.citaForm.value;
       const paciente = this.pacientes[valores.pacienteIndex];
 
+      if (!paciente) {
+        console.error('❌ Error: No se pudo mapear el objeto paciente en el índice indicado.');
+        return;
+      }
+
       const nuevaCita: Cita = {
-        pacienteId: paciente.id,
-        pacienteNombre: paciente.nombre,
+        pacienteId: paciente.id || '',
+        // Mapeo seguro con fallback por si conviven registros híbridos en la base de datos
+        pacienteNombre: paciente.Nombre || paciente.nombre || 'Paciente Desconocido',
         fecha: valores.fecha,
         hora: valores.hora,
         estado: valores.estado,
         motivo: valores.motivo
       };
 
-      this.citasService.addCita(nuevaCita).then(() => {
-        this.cerrarModal();
-        this.cdr.detectChanges();
-      }).catch(err => console.error('Error al agendar:', err));
+      console.log('🚀 Registrando nuevo turno en Firestore...', nuevaCita);
+
+      this.citasService.addCita(nuevaCita)
+        .then(() => {
+          this.cerrarModal();
+          this.cdr.detectChanges();
+        })
+        .catch(err => console.error('Error al agendar la cita:', err));
     } else {
       this.citaForm.markAllAsTouched();
     }
   }
 
-  // 👈 NUEVOS MÉTODOS PARA ACCIONES INTERACTIVAS SOBRE CITAS
+  // ACCIONES INTERACTIVAS SOBRE CITAS EXISTENTES
   abrirModalGestion(cita: Cita, event: Event) {
     event.stopPropagation(); // Evita que el clic afecte a otros elementos del calendario
     this.citaSeleccionada = cita;
@@ -181,8 +192,15 @@ export class AgendaComponent implements OnInit {
     }
   }
 
-  esMesActual(date: Date): boolean { return date.getMonth() === this.fechaActual.getMonth(); }
+  // 👈 CORREGIDO: AGREGADA SALVAGUARDA CONTRA CAMPOS UNDEFINED
+  esMesActual(date: Date): boolean { 
+    if (!date) return false; // Si viene vacío, evita que rompa el getMonth()
+    return date.getMonth() === this.fechaActual.getMonth(); 
+  }
+
+  // 👈 CORREGIDO: AGREGADA SALVAGUARDA CONTRA CAMPOS UNDEFINED
   esHoy(date: Date): boolean {
+    if (!date) return false; // Si viene vacío, evita que rompa
     const hoy = new Date();
     return date.getDate() === hoy.getDate() && date.getMonth() === hoy.getMonth() && date.getFullYear() === hoy.getFullYear();
   }
